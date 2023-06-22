@@ -52,7 +52,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                     CarouselModel_()
                         .id(homeScreenModel.hashCode())
                         .models(movieModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
+                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 2))
                         .addTo(this)
 
                 }
@@ -96,7 +96,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                     CarouselModel_()
                         .id(homeScreenModel.hashCode())
                         .models(recentModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
+                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 2))
                         .addTo(this)
                 }
             }
