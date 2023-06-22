@@ -68,7 +68,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     lateinit var okHttpClient: OkHttpClient
 
     private lateinit var videoUrl: String
-    lateinit var rootView: View
+    private lateinit var rootView: View
     private lateinit var player: ExoPlayer
     private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
     private lateinit var trackSelector: DefaultTrackSelector
@@ -117,6 +117,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setGestureDetector()
+        setupKeyListener()
     }
 
     override fun onDestroy() {
@@ -327,7 +328,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun refreshData() {
-        if (::content.isInitialized && !content.urls.isNullOrEmpty()) {
+        if (::content.isInitialized && content.urls.isNotEmpty()) {
             loadVideo(player.currentPosition, true)
         } else {
             (activity as VideoPlayerActivity).refreshM3u8Url()
@@ -696,6 +697,59 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         return isVideoPlaying
     }
 
+    private fun setupKeyListener() {
+        // Set the key listener for the root view
+        exoPlayerFrameLayout.setOnKeyListener { v, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        if (!exoPlayerView.isControllerVisible) {
+                            exoPlayerView.showController()
+                        }
+
+                        // Move focus to the element above the currently focused view
+                        val viewAbove = v.focusSearch(View.FOCUS_UP)
+                        viewAbove?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        if (!exoPlayerView.isControllerVisible) {
+                            exoPlayerView.showController()
+                        }
+
+                        // Move focus to the element below the currently focused view
+                        val viewBelow = v.focusSearch(View.FOCUS_DOWN)
+                        viewBelow?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        // Move focus to the element to the left of the currently focused view
+                        if (exoPlayerView.isControllerVisible) {
+                            val viewLeft = v.focusSearch(View.FOCUS_LEFT)
+                            viewLeft?.requestFocus()
+                            return@setOnKeyListener true
+                        } else {
+                            seekRewind()
+                        }
+                    }
+
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        // Move focus to the element to the right of the currently focused view
+                        if (exoPlayerView.isControllerVisible) {
+                            val viewRight = v.focusSearch(View.FOCUS_RIGHT)
+                            viewRight?.requestFocus()
+                            return@setOnKeyListener true
+                        } else {
+                            seekForward()
+                        }
+                    }
+                }
+            }
+            return@setOnKeyListener false
+        }
+    }
 }
 
 interface VideoPlayerListener {

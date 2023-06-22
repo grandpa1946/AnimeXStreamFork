@@ -2,7 +2,6 @@ package net.xblacky.animexstream.ui.main.player
 
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
-import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,24 +10,21 @@ import android.os.Build
 import android.os.Bundle
 import android.view.KeyEvent
 import android.view.View
-import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_video_player.*
-import kotlinx.android.synthetic.main.fragment_video_player.*
-import net.xblacky.animexstream.R
-import net.xblacky.animexstream.utils.model.Content
-import timber.log.Timber
-import java.lang.Exception
-import android.view.WindowInsetsController
-
 import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
-import com.google.firebase.database.android.AndroidPlatform
-import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerView
+import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.activity_video_player.playerFragment
+import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerFrameLayout
+import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerView
+import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.helper.isRunningOnAndroidTV
+import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
+import timber.log.Timber
 import javax.inject.Inject
 
 
@@ -49,7 +45,6 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         getExtra(intent)
         setObserver()
         goFullScreen()
-        setupKeyListener()
     }
 
 
@@ -181,6 +176,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                     packageName
                 ) == AppOpsManager.MODE_ALLOWED
             }
+
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
                 appsOps.checkOpNoThrow(
                     AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
@@ -188,6 +184,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                     packageName
                 ) == AppOpsManager.MODE_ALLOWED
             }
+
             else -> {
                 false
             }
@@ -307,43 +304,5 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
     fun refreshM3u8Url() {
         viewModel.fetchEpisodeData(forceRefresh = true)
-    }
-
-    private fun setupKeyListener() {
-        // Set the key listener for the root view
-        exoPlayerView.setOnKeyListener { v, keyCode, event ->
-            if (event.action == KeyEvent.ACTION_DOWN) {
-                if(!exoPlayerView.isControllerVisible) {
-                    exoPlayerView.showController()
-                }
-                when (keyCode) {
-                    KeyEvent.KEYCODE_DPAD_UP -> {
-                        // Move focus to the element above the currently focused view
-                        val viewAbove = v.focusSearch(View.FOCUS_UP)
-                        viewAbove?.requestFocus()
-                        return@setOnKeyListener true
-                    }
-                    KeyEvent.KEYCODE_DPAD_DOWN -> {
-                        // Move focus to the element below the currently focused view
-                        val viewBelow = v.focusSearch(View.FOCUS_DOWN)
-                        viewBelow?.requestFocus()
-                        return@setOnKeyListener true
-                    }
-                    KeyEvent.KEYCODE_DPAD_LEFT -> {
-                        // Move focus to the element to the left of the currently focused view
-                        val viewLeft = v.focusSearch(View.FOCUS_LEFT)
-                        viewLeft?.requestFocus()
-                        return@setOnKeyListener true
-                    }
-                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                        // Move focus to the element to the right of the currently focused view
-                        val viewRight = v.focusSearch(View.FOCUS_RIGHT)
-                        viewRight?.requestFocus()
-                        return@setOnKeyListener true
-                    }
-                }
-            }
-            return@setOnKeyListener false
-        }
     }
 }

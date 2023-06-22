@@ -11,7 +11,7 @@ class C {
         const val NO_INTERNET_CONNECTION = 1001
 
         //Base URLS
-        var BASE_URL = "https://gogoanime.sk/"
+        var BASE_URL = "https://www3.gogoanimes.fi/"
         const val EPISODE_LOAD_URL = "https://ajax.gogocdn.net/ajax/load-list-episode"
         const val SEARCH_URL = "/search.html"
 
@@ -59,7 +59,7 @@ class C {
 
         //Network Requests Header
         const val USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.132 Safari/537.36"
-        const val ORIGIN = "https://gogoanime.sk/"
+        const val ORIGIN = "https://www3.gogoanimes.fi/"
         const val  REFERER = "https://goload.pro/"
 
         //Realm

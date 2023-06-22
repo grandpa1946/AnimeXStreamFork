@@ -57,14 +57,12 @@ abstract class AnimeSubDubModel2 : EpoxyModelWithHolder<AnimeSubDubModel2.SubDub
 
         lateinit var rootView: View
         lateinit var animeImageView: AppCompatImageView
-        lateinit var animeCardView: CardView
         lateinit var animeTitle: TextView
         lateinit var animeEpisode: TextView
 
         override fun bindView(itemView: View) {
             rootView = itemView.rootView
             animeImageView = itemView.animeImageSubDub
-            animeCardView = itemView.animeCardViewSubDub
             animeTitle = itemView.animeTitleSubDub
             animeEpisode = itemView.episodeNumberSubDub
         }
