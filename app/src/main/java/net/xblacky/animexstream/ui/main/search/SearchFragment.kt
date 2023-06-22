@@ -8,7 +8,6 @@ import android.net.NetworkInfo
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +16,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -27,22 +25,19 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialContainerTransform
-import com.google.android.material.transition.MaterialElevationScale
 import com.google.android.material.transition.MaterialFadeThrough
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_search.view.*
-import kotlinx.android.synthetic.main.loading.view.*
+import kotlinx.android.synthetic.main.fragment_search.view.searchEditText
+import kotlinx.android.synthetic.main.fragment_search.view.searchRecyclerView
+import kotlinx.android.synthetic.main.loading.view.loading
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.ui.main.search.epoxy.SearchController
 import net.xblacky.animexstream.utils.CommonViewModel2
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
-import timber.log.Timber
 
 
-class SearchFragment : Fragment(), View.OnClickListener,
-    SearchController.EpoxySearchAdapterCallbacks {
+class SearchFragment : Fragment(), SearchController.EpoxySearchAdapterCallbacks {
 
     private lateinit var rootView: View
     private lateinit var viewModel: SearchViewModel
@@ -62,7 +57,6 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
         setupTransitions(view)
         setObserver()
-        setOnClickListeners()
         setAdapters()
         setRecyclerViewScroll()
         setEditTextListener()
@@ -92,11 +86,6 @@ class SearchFragment : Fragment(), View.OnClickListener,
             }
 
         })
-    }
-
-
-    private fun setOnClickListeners() {
-        rootView.backButton.setOnClickListener(this)
     }
 
     private fun setAdapters() {
@@ -177,16 +166,6 @@ class SearchFragment : Fragment(), View.OnClickListener,
 //            }
 //            searchController.setData(viewModel.searchList.value, it.isLoading)
 //        })
-    }
-
-    override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.backButton -> {
-                hideKeyBoard()
-                findNavController().popBackStack()
-
-            }
-        }
     }
 
     private fun setRecyclerViewScroll() {

@@ -26,18 +26,6 @@
             android:id="@+id/searchLayout"
             android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow"
-                android:id="@+id/backButton"
-                android:scaleX="1"
-                android:scaleY="1"
-                android:padding="10dp"
-                android:background="?selectableItemBackgroundBorderless"
-                android:contentDescription="@string/back_button"
-                app:tint="@color/search_back" />
-
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
