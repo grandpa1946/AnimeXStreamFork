@@ -68,7 +68,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     lateinit var okHttpClient: OkHttpClient
 
     private lateinit var videoUrl: String
-    private lateinit var rootView: View
+    lateinit var rootView: View
     private lateinit var player: ExoPlayer
     private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
     private lateinit var trackSelector: DefaultTrackSelector

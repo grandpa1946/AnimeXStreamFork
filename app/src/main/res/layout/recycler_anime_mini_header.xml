@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
 
     android:paddingLeft="20dp"
+    android:focusable="false"
     android:paddingRight="20dp"
     android:layout_height="wrap_content">
 

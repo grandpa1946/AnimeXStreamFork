@@ -6,13 +6,13 @@ import android.os.Build.VERSION_CODES
 import android.os.Bundle
 import android.view.View
 import android.view.Window
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.android.material.transition.platform.MaterialContainerTransformSharedElementCallback
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import dagger.hilt.android.AndroidEntryPoint
+import net.xblacky.animexstream.utils.helper.isRunningOnAndroidTV
 import net.xblacky.animexstream.utils.preference.PreferenceHelper
 import timber.log.Timber
 
@@ -26,7 +26,11 @@ class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY)
         } else {
-            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            if (isRunningOnAndroidTV()) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
         }
         updateRemoteConfig()
         toggleDayNight()

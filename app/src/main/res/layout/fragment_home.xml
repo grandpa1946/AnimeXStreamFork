@@ -17,6 +17,7 @@
         android:paddingTop="20dp"
         android:paddingRight="20dp"
         android:paddingBottom="10dp"
+        android:focusable="false"
         android:text="@string/discover"
         android:textColor="@color/home_header"
         android:textSize="36sp" />
@@ -60,6 +61,7 @@
         android:layout_marginTop="300dp"
         android:background="@color/app_background"
         android:elevation="0dp"
+        android:focusable="false"
         android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -72,6 +74,7 @@
         android:layout_height="0dp"
         android:clipToPadding="false"
         android:paddingBottom="25dp"
+        android:focusable="false"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

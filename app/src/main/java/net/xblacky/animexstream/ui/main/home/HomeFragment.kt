@@ -3,6 +3,7 @@ package net.xblacky.animexstream.ui.main.home
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,7 +11,6 @@ import androidx.appcompat.app.AlertDialog
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -51,6 +51,43 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         setClickListeners()
         viewModel.queryDB()
         viewModelObserver()
+
+        setupKeyListener()
+    }
+
+    private fun setupKeyListener() {
+        // Set the key listener for the root view
+        rootView.setOnKeyListener { v, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // Move focus to the element above the currently focused view
+                        val viewAbove = v.focusSearch(View.FOCUS_UP)
+                        viewAbove?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        // Move focus to the element below the currently focused view
+                        val viewBelow = v.focusSearch(View.FOCUS_DOWN)
+                        viewBelow?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        // Move focus to the element to the left of the currently focused view
+                        val viewLeft = v.focusSearch(View.FOCUS_LEFT)
+                        viewLeft?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        // Move focus to the element to the right of the currently focused view
+                        val viewRight = v.focusSearch(View.FOCUS_RIGHT)
+                        viewRight?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                }
+            }
+            return@setOnKeyListener false
+        }
     }
 
     private fun setAdapter() {
@@ -106,6 +143,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                 }
 
             }
+
             R.id.search -> {
                 val extras =
                     FragmentNavigatorExtras(rootView.search to resources.getString(R.string.search_transition))
@@ -114,6 +152,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                     extras
                 )
             }
+
             R.id.favorite -> {
                 val extras = FragmentNavigatorExtras(
                     rootView.favorite to resources.getString(R.string.favourite_transition)
@@ -125,16 +164,6 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                 )
             }
         }
-    }
-
-    override fun recentSubDubEpisodeClick(model: AnimeMetaModel) {
-        findNavController().navigate(
-            HomeFragmentDirections.actionHomeFragmentToVideoPlayerActivity(
-                episodeUrl = model.episodeUrl,
-                animeName = model.title,
-                episodeNumber = model.episodeNumber
-            )
-        )
     }
 
     override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {

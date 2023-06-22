@@ -2,12 +2,14 @@ package net.xblacky.animexstream.ui.main.player
 
 import android.app.AppOpsManager
 import android.app.PictureInPictureParams
+import android.app.UiModeManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
@@ -23,6 +25,9 @@ import android.view.WindowInsetsController
 import android.view.WindowInsets
 import androidx.activity.viewModels
 import androidx.lifecycle.Observer
+import com.google.firebase.database.android.AndroidPlatform
+import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerView
+import net.xblacky.animexstream.utils.helper.isRunningOnAndroidTV
 import net.xblacky.animexstream.utils.preference.Preference
 import javax.inject.Inject
 
@@ -44,6 +49,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         getExtra(intent)
         setObserver()
         goFullScreen()
+        setupKeyListener()
     }
 
 
@@ -99,6 +105,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
                 )
             && hasPipPermission()
             && (playerFragment as VideoPlayerFragment).isVideoPlaying()
+            && !isRunningOnAndroidTV()
         ) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val params = PictureInPictureParams.Builder()
@@ -192,7 +199,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.content.observe(this, Observer {
             this.content = it
             it?.let {
-                if (!it.urls.isNullOrEmpty()) {
+                if (it.urls.isNotEmpty()) {
                     (playerFragment as VideoPlayerFragment).updateContent(it)
                 }
             }
@@ -244,7 +251,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.nextEpisodeUrl,
-                episodeName = "\"EP ${incrimentEpisodeNumber(content.episodeName!!)}\"",
+                episodeName = "\"EP ${incrementEpisodeNumber(content.episodeName!!)}\"",
                 urls = ArrayList(),
                 animeName = content.animeName
             )
@@ -258,7 +265,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.previousEpisodeUrl,
-                episodeName = "\"EP ${decrimentEpisodeNumber(content.episodeName!!)}\"",
+                episodeName = "\"EP ${decrementEpisodeNumber(content.episodeName!!)}\"",
                 urls = ArrayList(),
                 animeName = content.animeName
             )
@@ -266,7 +273,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData()
     }
 
-    private fun incrimentEpisodeNumber(episodeName: String): String {
+    private fun incrementEpisodeNumber(episodeName: String): String {
         return try {
             Timber.e("Episode Name $episodeName")
             val episodeString = episodeName.substring(
@@ -282,7 +289,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         }
     }
 
-    private fun decrimentEpisodeNumber(episodeName: String): String {
+    private fun decrementEpisodeNumber(episodeName: String): String {
         return try {
             val episodeString = episodeName.substring(
                 episodeName.lastIndexOf(' ') + 1,
@@ -302,4 +309,41 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData(forceRefresh = true)
     }
 
+    private fun setupKeyListener() {
+        // Set the key listener for the root view
+        exoPlayerView.setOnKeyListener { v, keyCode, event ->
+            if (event.action == KeyEvent.ACTION_DOWN) {
+                if(!exoPlayerView.isControllerVisible) {
+                    exoPlayerView.showController()
+                }
+                when (keyCode) {
+                    KeyEvent.KEYCODE_DPAD_UP -> {
+                        // Move focus to the element above the currently focused view
+                        val viewAbove = v.focusSearch(View.FOCUS_UP)
+                        viewAbove?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_DOWN -> {
+                        // Move focus to the element below the currently focused view
+                        val viewBelow = v.focusSearch(View.FOCUS_DOWN)
+                        viewBelow?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_LEFT -> {
+                        // Move focus to the element to the left of the currently focused view
+                        val viewLeft = v.focusSearch(View.FOCUS_LEFT)
+                        viewLeft?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                    KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                        // Move focus to the element to the right of the currently focused view
+                        val viewRight = v.focusSearch(View.FOCUS_RIGHT)
+                        viewRight?.requestFocus()
+                        return@setOnKeyListener true
+                    }
+                }
+            }
+            return@setOnKeyListener false
+        }
+    }
 }
