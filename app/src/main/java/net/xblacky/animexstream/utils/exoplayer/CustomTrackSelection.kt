@@ -1,16 +1,9 @@
 package net.xblacky.animexstream.utils.exoplayer
 
 import android.content.Context
-import android.text.Selection
 import androidx.appcompat.app.AlertDialog
-import com.google.android.exoplayer2.source.TrackGroup
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
-import com.google.android.exoplayer2.trackselection.DefaultTrackSelector.SelectionOverride
-import com.google.android.exoplayer2.trackselection.MappingTrackSelector.MappedTrackInfo
-import com.google.android.exoplayer2.trackselection.TrackSelectionUtil
-import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder.DialogCallback
-import com.google.android.exoplayer2.util.Assertions
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import timber.log.Timber
 
 class CustomTrackSelection(
@@ -21,7 +14,8 @@ class CustomTrackSelection(
 ) {
 
 
-    private val mappedTrackInfo: MappedTrackInfo = trackSelector.currentMappedTrackInfo!!
+    private val mappedTrackInfo: MappingTrackSelector.MappedTrackInfo =
+        trackSelector.currentMappedTrackInfo!!
 
 
     //get TrackGroups for Quality renderer=0 Represent Quality.
@@ -66,7 +60,7 @@ class CustomTrackSelection(
 
             }
             setPositiveButton("OK") { dialog, _ ->
-                val newOverride = SelectionOverride(0, 1)
+                val newOverride = DefaultTrackSelector.SelectionOverride(0, 1)
                 trackSelector.setParameters(
                     trackSelector.buildUponParameters()
                         .setSelectionOverride(rendererIndex, rendererTracksGroup, newOverride)

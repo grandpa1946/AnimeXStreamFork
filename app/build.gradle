@@ -23,7 +23,6 @@ android {
         }
     }
 
-    compileSdkVersion 32
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -35,7 +34,8 @@ android {
     defaultConfig {
         applicationId "net.xblacky.animexstream"
         minSdkVersion 21
-        targetSdkVersion 32
+        compileSdk 33
+        targetSdkVersion 33
         versionCode 17
         versionName "0.5.0"
         vectorDrawables.useSupportLibrary = true
@@ -121,9 +121,11 @@ dependencies {
     implementation 'org.apmem.tools:layouts:1.10@aar'
 
     //Exo Player
-    implementation 'com.google.android.exoplayer:exoplayer:2.16.1'
-    implementation 'com.google.android.exoplayer:extension-mediasession:2.16.1'
-    implementation 'com.google.android.exoplayer:extension-okhttp:2.16.1'
+    implementation 'androidx.media3:media3-exoplayer:1.0.2'
+    implementation "androidx.media3:media3-ui:1.0.2"
+    implementation "androidx.media3:media3-session:1.0.2"
+    implementation "androidx.media3:media3-exoplayer-hls:1.0.2"
+    implementation 'androidx.media3:media3-datasource-okhttp:1.0.2'
 
     //Expandable TextView
     implementation 'com.ms-square:expandableTextView:0.1.4'
