@@ -16,9 +16,9 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.transition.MaterialFadeThrough
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_home.view.*
 import net.xblacky.animexstream.BuildConfig
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.databinding.FragmentHomeBinding
 import net.xblacky.animexstream.ui.main.home.epoxy.HomeController
 import net.xblacky.animexstream.utils.EventObserver
 import net.xblacky.animexstream.utils.constants.C
@@ -34,13 +34,22 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     private var doubleClickLastTime = 0L
 
     private val viewModel: HomeViewModel by activityViewModels()
+
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        rootView = inflater.inflate(R.layout.fragment_home, container, false)
-        return rootView
+        _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -57,7 +66,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
 
     private fun setupKeyListener() {
         // Set the key listener for the root view
-        rootView.setOnKeyListener { v, keyCode, event ->
+        binding.root.setOnKeyListener { v, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_UP -> {
@@ -94,7 +103,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         homeController = HomeController(this)
         homeController.isDebugLoggingEnabled = true
         homeController.setFilterDuplicates(true)
-        val homeRecyclerView = rootView.recyclerView
+        val homeRecyclerView = binding.recyclerView
         homeRecyclerView.layoutManager = LinearLayoutManager(context)
         homeRecyclerView.adapter = homeController.adapter
     }
@@ -104,7 +113,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
             homeController.setData(it)
         }
         viewModel.scrollToTopEvent.observe(viewLifecycleOwner, EventObserver {
-            rootView.recyclerView.smoothScrollToPosition(0)
+            binding.recyclerView.smoothScrollToPosition(0)
         })
 
         viewModel.updateModel.observe(viewLifecycleOwner) {
@@ -127,16 +136,16 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     }
 
     private fun setClickListeners() {
-        rootView.header.setOnClickListener(this)
-        rootView.search.setOnClickListener(this)
-        rootView.favorite.setOnClickListener(this)
+        binding.header.setOnClickListener(this)
+        binding.search.setOnClickListener(this)
+        binding.favorite.setOnClickListener(this)
     }
 
     override fun onClick(v: View?) {
         when (v?.id) {
             R.id.header -> {
                 doubleClickLastTime = if (System.currentTimeMillis() - doubleClickLastTime < 300) {
-                    rootView.recyclerView.smoothScrollToPosition(0)
+                    binding.recyclerView.smoothScrollToPosition(0)
                     0L
                 } else {
                     System.currentTimeMillis()
@@ -146,7 +155,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
 
             R.id.search -> {
                 val extras =
-                    FragmentNavigatorExtras(rootView.search to resources.getString(R.string.search_transition))
+                    FragmentNavigatorExtras(binding.search to resources.getString(R.string.search_transition))
                 findNavController().navigate(
                     HomeFragmentDirections.actionHomeFragmentToSearchFragment(),
                     extras
@@ -155,7 +164,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
 
             R.id.favorite -> {
                 val extras = FragmentNavigatorExtras(
-                    rootView.favorite to resources.getString(R.string.favourite_transition)
+                    binding.favorite to resources.getString(R.string.favourite_transition)
 
                 )
                 findNavController().navigate(

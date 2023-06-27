@@ -12,6 +12,7 @@ import com.google.android.material.transition.platform.MaterialContainerTransfor
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigSettings
 import dagger.hilt.android.AndroidEntryPoint
+import net.xblacky.animexstream.databinding.MainActivityBinding
 import net.xblacky.animexstream.utils.helper.isRunningOnAndroidTV
 import net.xblacky.animexstream.utils.preference.PreferenceHelper
 import timber.log.Timber
@@ -20,9 +21,15 @@ import timber.log.Timber
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: MainActivityBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         setupTransitions()
         super.onCreate(savedInstanceState)
+
+        binding = MainActivityBinding.inflate(layoutInflater)
+        val view = binding.root
+
         if (Build.VERSION.SDK_INT < VERSION_CODES.Q) {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_AUTO_BATTERY)
         } else {
@@ -34,10 +41,10 @@ class MainActivity : AppCompatActivity() {
         }
         updateRemoteConfig()
         toggleDayNight()
-        setContentView(R.layout.main_activity)
+        setContentView(view)
     }
 
-    private fun setupTransitions(){
+    private fun setupTransitions() {
         window.requestFeature(Window.FEATURE_ACTIVITY_TRANSITIONS)
         // Attach a callback used to capture the shared elements from this Activity to be used
         // by the container transform transition
@@ -51,6 +58,7 @@ class MainActivity : AppCompatActivity() {
             Configuration.UI_MODE_NIGHT_YES -> {
                 Timber.e("Night Mode")
             }
+
             Configuration.UI_MODE_NIGHT_NO -> {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                     val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

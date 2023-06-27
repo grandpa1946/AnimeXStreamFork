@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'dagger.hilt.android.plugin'
 kapt {
@@ -65,6 +64,10 @@ android {
             // Specifies that we do not want to also generate a universal APK that includes all ABIs.
             universalApk true
         }
+    }
+
+    buildFeatures {
+        viewBinding true
     }
 
 
