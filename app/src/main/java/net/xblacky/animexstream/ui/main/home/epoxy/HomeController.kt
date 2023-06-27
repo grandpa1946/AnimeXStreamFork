@@ -85,8 +85,8 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                                     recentSubDubClick(
                                         model = model.animeMetaModel(),
                                         clickedView = clickedView,
-                                        sharedTitle = holder.animeTitle,
-                                        sharedImage = holder.animeImageView
+                                        sharedTitle = holder.binding.animeTitle,
+                                        sharedImage = holder.binding.animeImage
 
                                     )
                                 }
