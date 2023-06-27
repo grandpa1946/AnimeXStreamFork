@@ -7,33 +7,68 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.support.v4.media.session.MediaSessionCompat
-import android.view.*
+import android.view.KeyEvent
+import android.view.LayoutInflater
+import android.view.ScaleGestureDetector
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
-import com.google.android.exoplayer2.*
-import com.google.android.exoplayer2.C.TrackType
-import com.google.android.exoplayer2.audio.AudioAttributes
-import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
-import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
-import com.google.android.exoplayer2.source.MediaSource
-import com.google.android.exoplayer2.source.ProgressiveMediaSource
-import com.google.android.exoplayer2.source.TrackGroupArray
-import com.google.android.exoplayer2.source.hls.HlsMediaSource
-import com.google.android.exoplayer2.trackselection.*
-import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
-import com.google.android.exoplayer2.upstream.DataSource
-import com.google.android.exoplayer2.upstream.HttpDataSource
-import com.google.android.exoplayer2.upstream.HttpDataSource.InvalidResponseCodeException
+import androidx.media3.common.AudioAttributes
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
+import androidx.media3.common.Player
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.HttpDataSource
+import androidx.media3.datasource.okhttp.OkHttpDataSource
+import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.hls.HlsMediaSource
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.source.ProgressiveMediaSource
+import androidx.media3.exoplayer.trackselection.AdaptiveTrackSelection
+import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.trackselection.ExoTrackSelection
+import androidx.media3.exoplayer.trackselection.MappingTrackSelector
+import androidx.media3.session.MediaSession
+import androidx.media3.ui.TrackSelectionDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.error_screen_video_player.view.*
-import kotlinx.android.synthetic.main.exo_player_custom_controls.*
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.*
-import kotlinx.android.synthetic.main.fragment_video_player.*
-import kotlinx.android.synthetic.main.fragment_video_player.view.*
-import kotlinx.android.synthetic.main.fragment_video_player_placeholder.view.*
+import kotlinx.android.synthetic.main.error_screen_video_player.view.errorButton
+import kotlinx.android.synthetic.main.error_screen_video_player.view.errorImage
+import kotlinx.android.synthetic.main.error_screen_video_player.view.errorLayout
+import kotlinx.android.synthetic.main.error_screen_video_player.view.errorText
+import kotlinx.android.synthetic.main.exo_player_custom_controls.animeName
+import kotlinx.android.synthetic.main.exo_player_custom_controls.episodeName
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exoSpeedText
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_ffwd
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_forward_plus
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_forward_text
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_remaining_time
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rew
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rewind_minus
+import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rewind_text
+import kotlinx.android.synthetic.main.exo_player_custom_controls.nextEpisode
+import kotlinx.android.synthetic.main.exo_player_custom_controls.previousEpisode
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.back
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exoQuality
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_ffwd
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_pause
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_play
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_rew
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_speed_selection_view
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_track_selection_view
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.nextEpisode
+import kotlinx.android.synthetic.main.exo_player_custom_controls.view.previousEpisode
+import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerFrameLayout
+import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerView
+import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerFrameLayout
+import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerView
+import kotlinx.android.synthetic.main.fragment_video_player_placeholder.view.videoPlayerLoading
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -49,9 +84,7 @@ import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
 import net.xblacky.animexstream.utils.touchevents.TouchUtils
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import timber.log.Timber
-import java.lang.Exception
 import javax.inject.Inject
 
 
@@ -73,8 +106,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private lateinit var player: ExoPlayer
     private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
     private lateinit var trackSelector: DefaultTrackSelector
-    private lateinit var mediaSession: MediaSessionCompat
-    private lateinit var mediaSessionConnector: MediaSessionConnector
+    private var mediaSession: MediaSession? = null
     private val SEEK_DISTANCE = 10000L
 
     private var mappedTrackInfo: MappingTrackSelector.MappedTrackInfo? = null
@@ -122,7 +154,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     override fun onDestroy() {
-        player.release()
+        mediaSession?.run {
+            player.release()
+            release()
+            mediaSession = null
+        }
         if (::handler.isInitialized) {
             handler.removeCallbacksAndMessages(null)
         }
@@ -254,24 +290,31 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             R.id.exo_track_selection_view -> {
                 showDialogForQualitySelection()
             }
+
             R.id.exo_speed_selection_view -> {
                 showDialogForSpeedSelection()
             }
+
             R.id.errorButton -> {
                 refreshData()
             }
+
             R.id.back -> {
                 (activity as VideoPlayerActivity).enterPipModeOrExit()
             }
+
             R.id.nextEpisode -> {
                 playNextEpisode()
             }
+
             R.id.exo_ffwd -> {
                 seekForward()
             }
+
             R.id.exo_rew -> {
                 seekRewind()
             }
+
             R.id.previousEpisode -> {
                 playPreviousEpisode()
             }
@@ -410,6 +453,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                             )
                         )
                     }
+
                     RESPONSE_UNKNOWN -> {
                         rootView.errorImage.setImageDrawable(
                             ResourcesCompat.getDrawable(
@@ -419,6 +463,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                             )
                         )
                     }
+
                     NO_INTERNET_CONNECTION -> {
                         rootView.errorImage.setImageDrawable(
                             ResourcesCompat.getDrawable(
@@ -517,7 +562,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             val httpError: HttpDataSource.HttpDataSourceException = cause
             // This is the request for which the error occurred.
             // querying the cause.
-            if (httpError is InvalidResponseCodeException) {
+            if (httpError is HttpDataSource.InvalidResponseCodeException) {
                 val responseCode = httpError.responseCode
                 content.urls = ArrayList()
                 showErrorLayout(
@@ -637,7 +682,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             (activity as VideoPlayerListener).updateWatchedValue(content)
         }
         playOrPausePlayer(false)
-        unRegisterMediaSession()
         super.onStop()
     }
 
@@ -648,12 +692,15 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                 player.volume = DEFAULT_MEDIA_VOLUME
                 playOrPausePlayer(true)
             }
+
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
                 playOrPausePlayer(false, loseAudioFocus = false)
             }
+
             AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
                 player.volume = DUCK_MEDIA_VOLUME
             }
+
             AudioManager.AUDIOFOCUS_LOSS -> {
                 playOrPausePlayer(false)
             }
@@ -661,26 +708,12 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun registerMediaSession() {
-        mediaSession = MediaSessionCompat(requireContext(), TAG)
-//        if (::content.isInitialized) {
-//
-////            val mediaMetadataCompat = MediaMetadataCompat.Builder()
-////                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, content.title)
-////                    .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, resources.getString(R.string.app_name))
-//////                    .putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, BitmapFactory.decodeResource(resources, R.drawable.app_icon))
-////                    .putString(MediaMetadataCompat.METADATA_KEY_TITLE, content.title)
-////                    .build()
-////
-////            mediaSession.setMetadata(mediaMetadataCompat)
-//        }
-        mediaSession.isActive = true
-        mediaSessionConnector = MediaSessionConnector(mediaSession)
-        mediaSessionConnector.setPlayer(player)
-    }
-
-    private fun unRegisterMediaSession() {
-        mediaSession.release()
-        mediaSessionConnector.setPlayer(null)
+        context?.let { context ->
+            val player = ExoPlayer.Builder(context).build()
+            mediaSession = MediaSession.Builder(context, player)
+                .setCallback(MySessionCallback())
+                .build()
+        }
     }
 
     fun saveWatchedDuration() {
@@ -704,7 +737,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_UP -> {
-                        if (!exoPlayerView.isControllerVisible) {
+                        if (!exoPlayerView.isControllerFullyVisible) {
                             exoPlayerView.showController()
                         }
 
@@ -715,7 +748,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                     }
 
                     KeyEvent.KEYCODE_DPAD_DOWN -> {
-                        if (!exoPlayerView.isControllerVisible) {
+                        if (!exoPlayerView.isControllerFullyVisible) {
                             exoPlayerView.showController()
                         }
 
@@ -727,7 +760,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
                     KeyEvent.KEYCODE_DPAD_LEFT -> {
                         // Move focus to the element to the left of the currently focused view
-                        if (exoPlayerView.isControllerVisible) {
+                        if (exoPlayerView.isControllerFullyVisible) {
                             val viewLeft = v.focusSearch(View.FOCUS_LEFT)
                             viewLeft?.requestFocus()
                             return@setOnKeyListener true
@@ -738,7 +771,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
                     KeyEvent.KEYCODE_DPAD_RIGHT -> {
                         // Move focus to the element to the right of the currently focused view
-                        if (exoPlayerView.isControllerVisible) {
+                        if (exoPlayerView.isControllerFullyVisible) {
                             val viewRight = v.focusSearch(View.FOCUS_RIGHT)
                             viewRight?.requestFocus()
                             return@setOnKeyListener true
@@ -751,6 +784,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             return@setOnKeyListener false
         }
     }
+}
+
+class MySessionCallback : MediaSession.Callback {
+
 }
 
 interface VideoPlayerListener {
