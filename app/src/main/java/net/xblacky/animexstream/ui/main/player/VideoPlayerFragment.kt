@@ -14,6 +14,7 @@ import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.C.TrackType
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.ext.mediasession.MediaSessionConnector
 import com.google.android.exoplayer2.ext.okhttp.OkHttpDataSource
@@ -135,7 +136,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         player = ExoPlayer.Builder(requireContext()).setTrackSelector(trackSelector).build()
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
-            .setContentType(C.CONTENT_TYPE_MOVIE)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
             .build()
 
         player.playWhenReady = true
@@ -284,8 +285,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             TrackSelectionDialogBuilder(
                 requireContext(),
                 getString(R.string.video_quality),
-                trackSelector,
-                0
+                player,
+                C.TRACK_TYPE_DEFAULT
 
             ).build().show()
         } catch (ignored: java.lang.NullPointerException) {
@@ -294,7 +295,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
 
-    override fun onTracksChanged(
+    /*override fun onTracksChanged(
         trackGroups: TrackGroupArray,
         trackSelections: TrackSelectionArray
     ) {
@@ -309,7 +310,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             }
 
         }
-    }
+    }*/
 
     private fun listenToRemaningTime() {
         job = lifecycleScope.launch {
