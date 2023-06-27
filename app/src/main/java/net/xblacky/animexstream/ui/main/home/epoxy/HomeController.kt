@@ -11,7 +11,7 @@ import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 
 
-class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
+class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
     TypedEpoxyController<ArrayList<HomeScreenModel>>() {
 
 
@@ -65,8 +65,8 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                             .clickListener { model, holder, _, _ ->
                                 adapterCallbacks.animeTitleClick(
                                     model = model.animeMetaModel(),
-                                    sharedTitle = holder.animeTitle,
-                                    sharedImage = holder.animeImageView
+                                    sharedTitle = holder.binding.animeTitle,
+                                    sharedImage = holder.binding.animeImage
                                 )
                             }
                             .animeMetaModel(animeMetaModel)
