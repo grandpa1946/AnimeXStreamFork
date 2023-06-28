@@ -28,8 +28,6 @@ import timber.log.Timber
 @AndroidEntryPoint
 class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapterCallbacks {
 
-
-    private lateinit var rootView: View
     private lateinit var homeController: HomeController
     private var doubleClickLastTime = 0L
 
@@ -74,18 +72,21 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
                         viewAbove?.requestFocus()
                         return@setOnKeyListener true
                     }
+
                     KeyEvent.KEYCODE_DPAD_DOWN -> {
                         // Move focus to the element below the currently focused view
                         val viewBelow = v.focusSearch(View.FOCUS_DOWN)
                         viewBelow?.requestFocus()
                         return@setOnKeyListener true
                     }
+
                     KeyEvent.KEYCODE_DPAD_LEFT -> {
                         // Move focus to the element to the left of the currently focused view
                         val viewLeft = v.focusSearch(View.FOCUS_LEFT)
                         viewLeft?.requestFocus()
                         return@setOnKeyListener true
                     }
+
                     KeyEvent.KEYCODE_DPAD_RIGHT -> {
                         // Move focus to the element to the right of the currently focused view
                         val viewRight = v.focusSearch(View.FOCUS_RIGHT)
