@@ -57,6 +57,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                         .addTo(this)
 
                 }
+
                 C.TYPE_POPULAR_ANIME -> {
                     homeScreenModel.animeList?.forEach {
                         val animeMetaModel = it
@@ -75,6 +76,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                     }
 
                 }
+
                 else -> {
                     val recentModelList: ArrayList<AnimeSubDubModel2_> = ArrayList()
                     homeScreenModel.animeList?.forEach {
@@ -116,6 +118,7 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
             R.id.animeImage -> {
                 adapterCallbacks.recentSubDubEpisodeClick(model = model)
             }
+
             R.id.animeTitle -> {
                 adapterCallbacks.animeTitleClick(
                     model = model,

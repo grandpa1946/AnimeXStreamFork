@@ -92,9 +92,8 @@ dependencies {
     implementation 'com.jakewharton.timber:timber:4.7.1'
 
     //Epoxy For Complex Recycler View
-    implementation "com.airbnb.android:epoxy:$epoxy_version"
-    implementation "com.airbnb.android:epoxy-databinding:$epoxy_version"
-    annotationProcessor "com.airbnb.android:epoxy-processor:$epoxy_version"
+    implementation 'com.airbnb.android:epoxy:4.4.2'
+    kapt 'com.airbnb.android:epoxy-processor:4.4.0'
 
     //For Image Loading
     implementation 'com.github.bumptech.glide:glide:4.12.0'

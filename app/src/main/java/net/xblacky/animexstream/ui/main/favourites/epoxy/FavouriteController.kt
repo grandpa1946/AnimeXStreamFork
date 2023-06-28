@@ -2,7 +2,6 @@ package net.xblacky.animexstream.ui.main.favourites.epoxy
 
 import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.FavouriteModel
 
 class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallbacks) :
