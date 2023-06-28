@@ -2,7 +2,6 @@ package net.xblacky.animexstream.ui.main.favourites.epoxy
 
 import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.FavouriteModel
 
 class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallbacks) :
@@ -19,7 +18,7 @@ class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallba
                         adapterCallbacks.animeTitleClick(
                             model = model.favouriteModel(),
                             sharedTitle = holder.animeTitle,
-                            sharedImage = holder.animeImageView
+                            sharedImage = holder.animeImage
                         )
                     }
                     .addTo(this)

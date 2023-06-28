@@ -21,7 +21,7 @@ import net.xblacky.animexstream.databinding.FragmentAnimeinfoBinding
 import net.xblacky.animexstream.ui.main.animeinfo.di.AnimeInfoFactory
 import net.xblacky.animexstream.ui.main.animeinfo.epoxy.AnimeInfoController
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
-import net.xblacky.animexstream.utils.Tags.GenreTags
+import net.xblacky.animexstream.utils.tags.GenreTags
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
 import net.xblacky.animexstream.utils.model.EpisodeModel
@@ -127,7 +127,7 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         sharedElementEnterTransition =
-            TransitionInflater.from(context).inflateTransition(R.transition.shared_element)
+            TransitionInflater.from(requireContext()).inflateTransition(R.transition.shared_element)
 
     }
 
@@ -140,7 +140,8 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
         binding.flowLayout.removeAllViews()
         animeInfoModel.genre.forEach {
             binding.flowLayout.addView(
-                GenreTags(requireContext()).getGenreTag(
+                GenreTags().getGenreTag(
+                    context = requireContext(),
                     genreName = it.genreName,
                     genreUrl = it.genreUrl
                 )

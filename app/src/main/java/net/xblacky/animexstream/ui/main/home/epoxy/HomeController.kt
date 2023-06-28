@@ -6,7 +6,6 @@ import com.airbnb.epoxy.Carousel.setDefaultGlobalSnapHelperFactory
 import com.airbnb.epoxy.CarouselModel_
 import com.airbnb.epoxy.TypedEpoxyController
 import net.xblacky.animexstream.utils.constants.C
-import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 

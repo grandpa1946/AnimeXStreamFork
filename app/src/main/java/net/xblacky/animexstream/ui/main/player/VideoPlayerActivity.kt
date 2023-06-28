@@ -89,19 +89,19 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
             this.content = it
             it?.let {
                 if (it.urls.isNotEmpty()) {
-                    getPlayerFragment()?.updateContent(it)
+//                    getPlayerFragment()?.updateContent(it)
                 }
             }
         }
         viewModel.isLoading.observe(this) {
-            getPlayerFragment()?.showLoading(it.isLoading)
+//            getPlayerFragment()?.showLoading(it.isLoading)
         }
         viewModel.errorModel.observe(this) {
-            getPlayerFragment()?.showErrorLayout(
+            /*getPlayerFragment()?.showErrorLayout(
                 it.show,
                 it.errorMsgId,
                 it.errorCode
-            )
+            )*/
         }
 
         viewModel.cdnServer.observe(this) {

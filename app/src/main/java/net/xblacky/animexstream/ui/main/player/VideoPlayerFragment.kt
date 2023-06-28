@@ -7,24 +7,16 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
-import android.view.KeyEvent
 import android.view.LayoutInflater
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.appcompat.app.AlertDialog
-import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.datasource.DataSource
-import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.SeekParameters
@@ -36,60 +28,19 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.session.MediaSession
-import androidx.media3.ui.TrackSelectionDialogBuilder
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.error_screen_video_player.view.errorButton
-import kotlinx.android.synthetic.main.error_screen_video_player.view.errorImage
-import kotlinx.android.synthetic.main.error_screen_video_player.view.errorLayout
-import kotlinx.android.synthetic.main.error_screen_video_player.view.errorText
-import kotlinx.android.synthetic.main.exo_player_custom_controls.animeName
-import kotlinx.android.synthetic.main.exo_player_custom_controls.episodeName
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exoSpeedText
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_ffwd
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_forward_plus
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_forward_text
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_remaining_time
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rew
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rewind_minus
-import kotlinx.android.synthetic.main.exo_player_custom_controls.exo_rewind_text
-import kotlinx.android.synthetic.main.exo_player_custom_controls.nextEpisode
-import kotlinx.android.synthetic.main.exo_player_custom_controls.previousEpisode
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.back
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exoQuality
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_ffwd
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_pause
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_play
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_rew
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_speed_selection_view
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.exo_track_selection_view
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.nextEpisode
-import kotlinx.android.synthetic.main.exo_player_custom_controls.view.previousEpisode
-import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerFrameLayout
-import kotlinx.android.synthetic.main.fragment_video_player.exoPlayerView
-import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerFrameLayout
-import kotlinx.android.synthetic.main.fragment_video_player.view.exoPlayerView
-import kotlinx.android.synthetic.main.fragment_video_player_placeholder.view.videoPlayerLoading
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import net.xblacky.animexstream.R
+import net.xblacky.animexstream.databinding.FragmentVideoPlayerBinding
 import net.xblacky.animexstream.ui.main.player.di.PlayerDI
-import net.xblacky.animexstream.ui.main.player.utils.CustomOnScaleGestureListener
-import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.animation.CustomAnimation
-import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
-import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
-import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
 import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
-import net.xblacky.animexstream.utils.touchevents.TouchUtils
 import okhttp3.OkHttpClient
 import timber.log.Timber
 import javax.inject.Inject
 
 
 @AndroidEntryPoint
-class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
+class VideoPlayerFragment : Fragment(), Player.Listener,
     AudioManager.OnAudioFocusChangeListener {
 
 
@@ -102,7 +53,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     lateinit var okHttpClient: OkHttpClient
 
     private lateinit var videoUrl: String
-    private lateinit var rootView: View
     private lateinit var player: ExoPlayer
     private lateinit var trackSelectionFactory: ExoTrackSelection.Factory
     private lateinit var trackSelector: DefaultTrackSelector
@@ -128,29 +78,30 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private var selectedQuality = 0
     private var job: Job? = null
 
+    private var _binding: FragmentVideoPlayerBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        super.onCreateView(inflater, container, savedInstanceState)
-        rootView = inflater.inflate(R.layout.fragment_video_player, container, false)
-        setClickListeners()
-        initializeAudioManager()
-        initializePlayer()
-        sharedPreferences = Preference(requireContext())
-        return rootView
+        _binding = FragmentVideoPlayerBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
-    override fun onStart() {
-        super.onStart()
-        registerMediaSession()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setGestureDetector()
-        setupKeyListener()
+//        setClickListeners()
+        initializeAudioManager()
+        initializePlayer()
+        sharedPreferences = Preference(requireContext())
+//        setupKeyListener()
     }
 
     override fun onDestroy() {
@@ -168,8 +119,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private fun initializePlayer() {
         trackSelectionFactory = AdaptiveTrackSelection.Factory()
         trackSelector = DefaultTrackSelector(requireContext(), trackSelectionFactory)
-        rootView.exoPlayerFrameLayout.setAspectRatio(16f / 9f)
+        binding.exoPlayerFrameLayout.setAspectRatio(16f / 9f)
         player = ExoPlayer.Builder(requireContext()).setTrackSelector(trackSelector).build()
+        mediaSession = MediaSession.Builder(requireContext(), player)
+            .setCallback(MySessionCallback())
+            .build()
         val audioAttributes: AudioAttributes = AudioAttributes.Builder()
             .setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
@@ -179,32 +133,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         player.setAudioAttributes(audioAttributes, false)
         player.addListener(this)
         player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
-        rootView.exoPlayerView.player = player
-
-
-    }
-
-    private fun setGestureDetector() {
-        val scaleGestureDetector =
-            ScaleGestureDetector(requireContext(), CustomOnScaleGestureListener(exoPlayerView))
-        exoPlayerView.setOnTouchListener { _, event ->
-            scaleGestureDetector.onTouchEvent(event)
-            if (event?.let { TouchUtils.isAClick(event = it) } == true) {
-                exoPlayerView.performClick()
-            }
-            true
-        }
-    }
-
-    private fun setClickListeners() {
-        rootView.exo_track_selection_view.setOnClickListener(this)
-        rootView.exo_speed_selection_view.setOnClickListener(this)
-        rootView.exo_rew.setOnClickListener(this)
-        rootView.exo_ffwd.setOnClickListener(this)
-        rootView.errorButton.setOnClickListener(this)
-        rootView.back.setOnClickListener(this)
-        rootView.nextEpisode.setOnClickListener(this)
-        rootView.previousEpisode.setOnClickListener(this)
+        binding.exoPlayerView.player = player
     }
 
     private fun buildMediaSource(url: String): MediaSource {
@@ -227,7 +156,18 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     }
 
-    fun updateContent(content: Content) {
+    /*private fun setClickListeners() {
+        rootView.exo_track_selection_view.setOnClickListener(this)
+        rootView.exo_speed_selection_view.setOnClickListener(this)
+        rootView.exo_rew.setOnClickListener(this)
+        rootView.exo_ffwd.setOnClickListener(this)
+        rootView.errorButton.setOnClickListener(this)
+        rootView.back.setOnClickListener(this)
+        rootView.nextEpisode.setOnClickListener(this)
+        rootView.previousEpisode.setOnClickListener(this)
+    }*/
+
+    /*fun updateContent(content: Content) {
         Timber.e("Content Updated uRL: ${content.urls}")
         this.content = content
         animeName.text = content.animeName
@@ -246,7 +186,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             previousEpisode.visibility = View.GONE
         }
 
-        if (!content.urls.isNullOrEmpty()) {
+        if (content.urls.isNotEmpty()) {
             try {
                 updateVideoUrl(content.urls[selectedQuality].url)
                 updateQualityText(selectedQuality)
@@ -263,7 +203,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             )
         }
 
-    }
+    }*/
 
     private fun updateVideoUrl(videoUrl: String, seekTo: Long? = content.watchedDuration) {
         this.videoUrl = videoUrl
@@ -272,8 +212,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     private fun loadVideo(seekTo: Long? = 0, playWhenReady: Boolean = true) {
         player.playWhenReady = playWhenReady
-        showLoading(true)
-        showErrorLayout(false, 0, 0)
+//        showLoading(true)
+//        showErrorLayout(false, 0, 0)
         val mediaSource = buildMediaSource(videoUrl)
         player.setMediaSource(mediaSource)
         player.prepare()
@@ -285,7 +225,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     }
 
-    override fun onClick(v: View?) {
+    /*override fun onClick(v: View?) {
         when (v?.id) {
             R.id.exo_track_selection_view -> {
                 showDialogForQualitySelection()
@@ -297,10 +237,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
             R.id.errorButton -> {
                 refreshData()
-            }
-
-            R.id.back -> {
-                (activity as VideoPlayerActivity).enterPipModeOrExit()
             }
 
             R.id.nextEpisode -> {
@@ -322,7 +258,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     }
 
     private fun showM3U8TrackSelector() {
-        mappedTrackInfo = trackSelector?.currentMappedTrackInfo
+        mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
         try {
             TrackSelectionDialogBuilder(
@@ -335,17 +271,14 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         } catch (ignored: java.lang.NullPointerException) {
         }
 
-    }
+    }*/
 
 
-    /*override fun onTracksChanged(
-        trackGroups: TrackGroupArray,
-        trackSelections: TrackSelectionArray
-    ) {
+    /*override fun onTracksChanged(tracks: Tracks) {
         if (IS_MEDIA_M3U8) {
             try {
                 val videoQuality =
-                    trackSelections.get(0)!!.getFormat(0).height.toString() + "p"
+                    tracks.groups[0].getTrackFormat(0).height.toString() + "p"
                 val quality = "Quality($videoQuality)"
                 Timber.e("Quality $quality")
                 rootView.exoQuality.text = quality
@@ -355,7 +288,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
     }*/
 
-    private fun listenToRemaningTime() {
+    /*private fun listenToRemainingTime() {
         job = lifecycleScope.launch {
             while (isVideoPlaying) {
                 val totalDuration = player.duration
@@ -369,39 +302,39 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                 delay(1000L)
             }
         }
-    }
+    }*/
 
-    private fun refreshData() {
+    /*private fun refreshData() {
         if (::content.isInitialized && content.urls.isNotEmpty()) {
             loadVideo(player.currentPosition, true)
         } else {
             (activity as VideoPlayerActivity).refreshM3u8Url()
         }
 
-    }
+    }*/
 
-    private fun seekForward() {
+    /*private fun seekForward() {
         seekExoPlayerForward()
         CustomAnimation.rotateForward(exo_ffwd)
         CustomAnimation.forwardAnimate(exo_forward_plus, exo_forward_text)
-    }
+    }*/
 
-    private fun seekExoPlayerForward() {
+    /*private fun seekExoPlayerForward() {
         val isSeekForwardAvailable = (player.duration - player.currentPosition) > SEEK_DISTANCE
         if (isSeekForwardAvailable) {
             player.seekTo(player.currentPosition + SEEK_DISTANCE)
         } else {
             player.seekTo(player.duration)
         }
-    }
+    }*/
 
-    private fun seekRewind() {
+    /*private fun seekRewind() {
         seekExoPlayerBackward()
         CustomAnimation.rotateBackward(exo_rew)
         CustomAnimation.rewindAnimate(exo_rewind_minus, exo_rewind_text)
-    }
+    }*/
 
-    private fun seekExoPlayerBackward() {
+    /*private fun seekExoPlayerBackward() {
         val isSeekBackwardAvailable = (player.currentPosition - SEEK_DISTANCE) > 0
         if (isSeekBackwardAvailable) {
             player.seekTo(player.currentPosition - SEEK_DISTANCE)
@@ -409,9 +342,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             player.seekTo(0L)
         }
 
-    }
+    }*/
 
-    private fun playNextEpisode() {
+    /*private fun playNextEpisode() {
         playOrPausePlayer(playWhenReady = false, loseAudioFocus = false)
         saveWatchedDuration()
         showLoading(true)
@@ -425,9 +358,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         saveWatchedDuration()
         (activity as VideoPlayerListener).playPreviousEpisode()
 
-    }
+    }*/
 
-    fun showLoading(showLoading: Boolean) {
+    /*fun showLoading(showLoading: Boolean) {
         if (::rootView.isInitialized) {
             if (showLoading) {
                 rootView.videoPlayerLoading.visibility = View.VISIBLE
@@ -435,10 +368,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                 rootView.videoPlayerLoading.visibility = View.GONE
             }
         }
-    }
+    }*/
 
 
-    fun showErrorLayout(show: Boolean, errorMsgId: Int, errorCode: Int) {
+    /*fun showErrorLayout(show: Boolean, errorMsgId: Int, errorCode: Int) {
         if (show) {
             rootView.errorLayout.visibility = View.VISIBLE
             context.let {
@@ -478,10 +411,10 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         } else {
             rootView.errorLayout.visibility = View.GONE
         }
-    }
+    }*/
 
 
-    private fun showDialogForQualitySelection() {
+    /*private fun showDialogForQualitySelection() {
         if (IS_MEDIA_M3U8) {
             showM3U8TrackSelector()
         } else {
@@ -499,23 +432,23 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             }
         }
     }
-
-    private fun selectQuality(index: Int) {
+*/
+    /*private fun selectQuality(index: Int) {
         selectedQuality = index
         updateQualityText(index = index)
         if (content.urls[index].url != videoUrl) {
             updateVideoUrl(content.urls[index].url, player.currentPosition)
         }
 
-    }
+    }*/
 
-    private fun updateQualityText(index: Int = 0) {
+    /*private fun updateQualityText(index: Int = 0) {
         selectedQuality = index
         val quality = "Quality(${content.urls[index].label})"
         rootView.exoQuality.text = quality
-    }
+    }*/
 
-    private fun getQualityArray(): ArrayList<String> {
+    /*private fun getQualityArray(): ArrayList<String> {
         val list = ArrayList<String>()
         if (::content.isInitialized) {
             content.urls.forEach {
@@ -529,19 +462,19 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private fun setPlaybackSpeed(speed: Float) {
         val params = PlaybackParameters(speed)
         player.playbackParameters = params
-    }
+    }*/
 
     // set the speed, selectedItem and change the text
-    private fun setSpeed(speed: Int) {
+    /*private fun setSpeed(speed: Int) {
         selectedSpeed = speed
         checkedItem = speed
         val speedText = "Speed(${showableSpeed[speed]})"
         exoSpeedText.text = speedText
         setPlaybackSpeed(speeds[selectedSpeed])
-    }
+    }*/
 
     // show dialog to select the speed.
-    private fun showDialogForSpeedSelection() {
+    /*private fun showDialogForSpeedSelection() {
         val builder = AlertDialog.Builder(requireContext())
         builder.apply {
             setTitle("Playback speed")
@@ -552,9 +485,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
         val dialog = builder.create()
         dialog.show()
-    }
+    }*/
 
-    override fun onPlayerError(error: PlaybackException) {
+    /*override fun onPlayerError(error: PlaybackException) {
         isVideoPlaying = false
         val cause = error.cause
         if (cause is HttpDataSource.HttpDataSourceException) {
@@ -586,7 +519,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
         isVideoPlaying = playWhenReady
-        if (isVideoPlaying) listenToRemaningTime() else job?.cancel()
+        if (isVideoPlaying) listenToRemainingTime() else job?.cancel()
         if (playbackState == Player.STATE_READY && playWhenReady) {
             rootView.exo_play.setImageResource(R.drawable.ic_media_play)
             rootView.exo_pause.setImageResource(R.drawable.ic_media_pause)
@@ -600,9 +533,9 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             showLoading(false)
         }
         if (playbackState == Player.STATE_READY) {
-            exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
+            binding.exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
         }
-    }
+    }*/
 
 
     private fun initializeAudioManager() {
@@ -707,15 +640,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
     }
 
-    private fun registerMediaSession() {
-        context?.let { context ->
-            val player = ExoPlayer.Builder(context).build()
-            mediaSession = MediaSession.Builder(context, player)
-                .setCallback(MySessionCallback())
-                .build()
-        }
-    }
-
     fun saveWatchedDuration() {
         if (::content.isInitialized) {
             val watchedDuration = player.currentPosition
@@ -731,14 +655,14 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         return isVideoPlaying
     }
 
-    private fun setupKeyListener() {
+    /*private fun setupKeyListener() {
         // Set the key listener for the root view
-        exoPlayerFrameLayout.setOnKeyListener { v, keyCode, event ->
+        binding.exoPlayerFrameLayout.setOnKeyListener { v, keyCode, event ->
             if (event.action == KeyEvent.ACTION_DOWN) {
                 when (keyCode) {
                     KeyEvent.KEYCODE_DPAD_UP -> {
-                        if (!exoPlayerView.isControllerFullyVisible) {
-                            exoPlayerView.showController()
+                        if (!binding.exoPlayerView.isControllerFullyVisible) {
+                            binding.exoPlayerView.showController()
                         }
 
                         // Move focus to the element above the currently focused view
@@ -748,8 +672,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                     }
 
                     KeyEvent.KEYCODE_DPAD_DOWN -> {
-                        if (!exoPlayerView.isControllerFullyVisible) {
-                            exoPlayerView.showController()
+                        if (!binding.exoPlayerView.isControllerFullyVisible) {
+                            binding.exoPlayerView.showController()
                         }
 
                         // Move focus to the element below the currently focused view
@@ -760,7 +684,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
                     KeyEvent.KEYCODE_DPAD_LEFT -> {
                         // Move focus to the element to the left of the currently focused view
-                        if (exoPlayerView.isControllerFullyVisible) {
+                        if (binding.exoPlayerView.isControllerFullyVisible) {
                             val viewLeft = v.focusSearch(View.FOCUS_LEFT)
                             viewLeft?.requestFocus()
                             return@setOnKeyListener true
@@ -771,7 +695,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
                     KeyEvent.KEYCODE_DPAD_RIGHT -> {
                         // Move focus to the element to the right of the currently focused view
-                        if (exoPlayerView.isControllerFullyVisible) {
+                        if (binding.exoPlayerView.isControllerFullyVisible) {
                             val viewRight = v.focusSearch(View.FOCUS_RIGHT)
                             viewRight?.requestFocus()
                             return@setOnKeyListener true
@@ -783,7 +707,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             }
             return@setOnKeyListener false
         }
-    }
+    }*/
 }
 
 class MySessionCallback : MediaSession.Callback {

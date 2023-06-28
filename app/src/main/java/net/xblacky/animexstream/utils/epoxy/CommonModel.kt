@@ -10,7 +10,6 @@ import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import kotlinx.android.synthetic.main.recycler_anime_common.view.*
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 
@@ -54,10 +53,10 @@ abstract class AnimeCommonModel : EpoxyModelWithHolder<AnimeCommonModel.MovieHol
         lateinit var root: ConstraintLayout
 
         override fun bindView(itemView: View) {
-            animeImageView = itemView.animeImage
-            animeTitle = itemView.animeTitle
-            releasedDate = itemView.releasedDate
-            root = itemView.root
+            animeImageView = itemView.findViewById(R.id.animeImage)
+            animeTitle = itemView.findViewById(R.id.animeTitle)
+            releasedDate = itemView.findViewById(R.id.releasedDate)
+            root = itemView.findViewById(R.id.root)
         }
 
     }
