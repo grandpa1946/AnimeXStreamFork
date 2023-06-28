@@ -29,8 +29,7 @@ abstract class AnimeSubDubModel2 : EpoxyModelWithHolder<AnimeSubDubModel2.SubDub
             .into(holder.animeImageView)
         holder.animeTitle.text = animeMetaModel.title
         holder.animeEpisode.text = animeMetaModel.episodeNumber
-        holder.animeImageView.setOnClickListener(clickListener)
-        holder.animeTitle.setOnClickListener(clickListener)
+        holder.rootLayout.setOnClickListener(clickListener)
 
         //Set Shared Element for Anime Title
         var animeTitleTransition = holder.animeTitle.context.getString(R.string.shared_anime_title)
@@ -52,8 +51,10 @@ abstract class AnimeSubDubModel2 : EpoxyModelWithHolder<AnimeSubDubModel2.SubDub
         lateinit var animeImageView: AppCompatImageView
         lateinit var animeTitle: TextView
         lateinit var animeEpisode: TextView
+        lateinit var rootLayout: View
 
         override fun bindView(itemView: View) {
+            rootLayout = itemView.findViewById(R.id.rootLayout)
             animeImageView = itemView.findViewById(R.id.animeImage)
             animeTitle = itemView.findViewById(R.id.animeTitle)
             animeEpisode = itemView.findViewById(R.id.episodeNumber)

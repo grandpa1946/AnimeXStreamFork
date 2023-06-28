@@ -5,7 +5,6 @@ import com.airbnb.epoxy.Carousel
 import com.airbnb.epoxy.Carousel.setDefaultGlobalSnapHelperFactory
 import com.airbnb.epoxy.CarouselModel_
 import com.airbnb.epoxy.TypedEpoxyController
-import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
@@ -84,13 +83,11 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                         recentModelList.add(
                             AnimeSubDubModel2_()
                                 .id(animeMetaModel.ID)
-                                .clickListener { model, holder, clickedView, _ ->
+                                .clickListener { model, holder, _, _ ->
                                     recentSubDubClick(
                                         model = model.animeMetaModel(),
-                                        clickedView = clickedView,
                                         sharedTitle = holder.animeTitle,
                                         sharedImage = holder.animeImageView
-
                                     )
                                 }
                                 .animeMetaModel(animeMetaModel)
@@ -110,30 +107,18 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
 
     private fun recentSubDubClick(
         model: AnimeMetaModel,
-        clickedView: View,
         sharedTitle: View,
         sharedImage: View
     ) {
-        when (clickedView.id) {
-            R.id.animeImage -> {
-                adapterCallbacks.recentSubDubEpisodeClick(model = model)
-            }
-
-            R.id.animeTitle -> {
-                adapterCallbacks.animeTitleClick(
-                    model = model,
-                    sharedTitle = sharedTitle,
-                    sharedImage = sharedImage
-                )
-            }
-        }
+        adapterCallbacks.animeTitleClick(
+            model = model,
+            sharedTitle = sharedTitle,
+            sharedImage = sharedImage
+        )
 
     }
-
 
     interface EpoxyAdapterCallbacks {
-        fun recentSubDubEpisodeClick(model: AnimeMetaModel)
         fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View)
     }
-
 }

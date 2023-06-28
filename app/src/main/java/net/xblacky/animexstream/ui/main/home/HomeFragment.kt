@@ -175,16 +175,6 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         }
     }
 
-    override fun recentSubDubEpisodeClick(model: AnimeMetaModel) {
-        findNavController().navigate(
-            HomeFragmentDirections.actionHomeFragmentToVideoPlayerActivity(
-                episodeUrl = model.episodeUrl,
-                animeName = model.title,
-                episodeNumber = model.episodeNumber
-            )
-        )
-    }
-
     override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
         if (!model.categoryUrl.isNullOrBlank()) {
 
