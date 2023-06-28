@@ -2,7 +2,8 @@ package net.xblacky.animexstream.ui.main.search.epoxy
 
 import android.view.View
 import com.airbnb.epoxy.Typed2EpoxyController
-import net.xblacky.animexstream.utils.epoxy.LoadingModel
+import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
+import net.xblacky.animexstream.utils.epoxy.LoadingModel_
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 
 class SearchController(var adapterCallbacks: EpoxySearchAdapterCallbacks) :

@@ -1,6 +1,12 @@
 package net.xblacky.animexstream.ui.main.animeinfo.epoxy
 
+import android.app.Activity
+import android.app.ActivityOptions
+import android.content.Intent
+import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
+import net.xblacky.animexstream.R
+import net.xblacky.animexstream.ui.main.player.VideoPlayerActivity
 import net.xblacky.animexstream.utils.model.EpisodeModel
 
 class AnimeInfoController(val episodeListener: EpisodeClickListener) :

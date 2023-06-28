@@ -5,12 +5,14 @@ import com.airbnb.epoxy.Carousel
 import com.airbnb.epoxy.Carousel.setDefaultGlobalSnapHelperFactory
 import com.airbnb.epoxy.CarouselModel_
 import com.airbnb.epoxy.TypedEpoxyController
+import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.constants.C
+import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 
 
-class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
+class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
     TypedEpoxyController<ArrayList<HomeScreenModel>>() {
 
 
@@ -51,7 +53,7 @@ class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
                     CarouselModel_()
                         .id(homeScreenModel.hashCode())
                         .models(movieModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 2))
+                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
                         .addTo(this)
 
                 }
@@ -64,8 +66,8 @@ class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
                             .clickListener { model, holder, _, _ ->
                                 adapterCallbacks.animeTitleClick(
                                     model = model.animeMetaModel(),
-                                    sharedTitle = holder.binding.animeTitle,
-                                    sharedImage = holder.binding.animeImage
+                                    sharedTitle = holder.animeTitle,
+                                    sharedImage = holder.animeImageView
                                 )
                             }
                             .animeMetaModel(animeMetaModel)
@@ -84,8 +86,8 @@ class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
                                     recentSubDubClick(
                                         model = model.animeMetaModel(),
                                         clickedView = clickedView,
-                                        sharedTitle = holder.binding.animeTitle,
-                                        sharedImage = holder.binding.animeImage
+                                        sharedTitle = holder.animeTitle,
+                                        sharedImage = holder.animeImageView
 
                                     )
                                 }
@@ -95,7 +97,7 @@ class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
                     CarouselModel_()
                         .id(homeScreenModel.hashCode())
                         .models(recentModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 2))
+                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
                         .addTo(this)
                 }
             }
@@ -110,15 +112,24 @@ class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
         sharedTitle: View,
         sharedImage: View
     ) {
-        adapterCallbacks.animeTitleClick(
-            model = model,
-            sharedTitle = sharedTitle,
-            sharedImage = sharedImage
-        )
+        when (clickedView.id) {
+            R.id.animeImage -> {
+                adapterCallbacks.recentSubDubEpisodeClick(model = model)
+            }
+            R.id.animeTitle -> {
+                adapterCallbacks.animeTitleClick(
+                    model = model,
+                    sharedTitle = sharedTitle,
+                    sharedImage = sharedImage
+                )
+            }
+        }
+
     }
 
 
     interface EpoxyAdapterCallbacks {
+        fun recentSubDubEpisodeClick(model: AnimeMetaModel)
         fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View)
     }
 

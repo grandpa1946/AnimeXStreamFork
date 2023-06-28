@@ -10,21 +10,21 @@ import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import kotlinx.android.synthetic.main.recycler_anime_common.view.*
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.utils.model.AnimeMetaModel
 
 @EpoxyModelClass(layout = R.layout.recycler_anime_common)
-abstract class FavouriteModel : EpoxyModelWithHolder<FavouriteModel.MovieHolder>() {
+abstract class FavouriteModel : EpoxyModelWithHolder<FavouriteModel.MovieHolder>(){
 
     @EpoxyAttribute
     lateinit var favouriteModel: net.xblacky.animexstream.utils.model.FavouriteModel
-
     @EpoxyAttribute
     var clickListener: View.OnClickListener? = null
 
     override fun bind(holder: MovieHolder) {
         Glide.with(holder.animeImageView.context).load(favouriteModel.imageUrl).transition(
-            DrawableTransitionOptions.withCrossFade()
-        ).into(holder.animeImageView)
+            DrawableTransitionOptions.withCrossFade()).into(holder.animeImageView)
         holder.animeTitle.text = favouriteModel.animeName
         favouriteModel.releasedDate?.let {
             val text = "Released: $it"
@@ -45,8 +45,7 @@ abstract class FavouriteModel : EpoxyModelWithHolder<FavouriteModel.MovieHolder>
         holder.animeImageView.transitionName = animeImageTransition
 
     }
-
-    class MovieHolder : EpoxyHolder() {
+    class MovieHolder : EpoxyHolder(){
 
         lateinit var animeImageView: AppCompatImageView
         lateinit var animeTitle: TextView
@@ -54,10 +53,10 @@ abstract class FavouriteModel : EpoxyModelWithHolder<FavouriteModel.MovieHolder>
         lateinit var root: ConstraintLayout
 
         override fun bindView(itemView: View) {
-            animeImageView = itemView.findViewById(R.id.animeImage)
-            animeTitle = itemView.findViewById(R.id.animeTitle)
-            releasedDate = itemView.findViewById(R.id.releasedDate)
-            root = itemView.findViewById(R.id.root)
+            animeImageView = itemView.animeImage
+            animeTitle = itemView.animeTitle
+            releasedDate = itemView.releasedDate
+            root = itemView.root
         }
 
     }

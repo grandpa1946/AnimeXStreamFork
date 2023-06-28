@@ -9,7 +9,9 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyHolder
 import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
+import kotlinx.android.synthetic.main.recycler_episode_item.view.*
 import net.xblacky.animexstream.R
+import timber.log.Timber
 
 @EpoxyModelClass(layout = R.layout.recycler_episode_item)
 abstract class EpisodeModel : EpoxyModelWithHolder<EpisodeModel.HomeHeaderHolder>() {
@@ -47,9 +49,9 @@ abstract class EpisodeModel : EpoxyModelWithHolder<EpisodeModel.HomeHeaderHolder
         lateinit var progressBar: ProgressBar
 
         override fun bindView(itemView: View) {
-            episodeText = itemView.findViewById(R.id.episodeNumber)
-            cardView = itemView.findViewById(R.id.cardView)
-            progressBar = itemView.findViewById(R.id.watchedProgress)
+            episodeText = itemView.episodeNumber
+            cardView = itemView.cardView
+            progressBar = itemView.watchedProgress
         }
     }
 
