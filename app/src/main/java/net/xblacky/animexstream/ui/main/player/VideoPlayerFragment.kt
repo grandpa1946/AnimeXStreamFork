@@ -22,7 +22,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
-import androidx.media3.common.TrackSelectionParameters
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
@@ -48,7 +47,6 @@ import net.xblacky.animexstream.databinding.FragmentVideoPlayerBinding
 import net.xblacky.animexstream.ui.main.player.di.PlayerDI
 import net.xblacky.animexstream.ui.main.player.utils.CustomOnScaleGestureListener
 import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
@@ -61,12 +59,10 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
-    AudioManager.OnAudioFocusChangeListener {
+class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFocusChangeListener {
 
     companion object {
         val TAG = VideoPlayerFragment::class.java.simpleName
-        private const val SEEK_DISTANCE = 10000L
         private const val DEFAULT_MEDIA_VOLUME = 1f
         private const val DUCK_MEDIA_VOLUME = 0.2f
     }
@@ -124,11 +120,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         registerMediaSession()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        setGestureDetector()
-    }
-
     override fun onDestroy() {
         player.release()
         if (::handler.isInitialized) {
@@ -152,31 +143,28 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         player.addListener(this)
         player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
         binding.exoPlayerView.player = player
-    }
+        binding.exoPlayerView.requestFocus()
+        binding.exoPlayerView.controllerAutoShow = false
 
-    private fun setGestureDetector() {
-        val scaleGestureDetector =
-            ScaleGestureDetector(
-                requireContext(),
-                CustomOnScaleGestureListener(binding.exoPlayerView)
-            )
-        binding.exoPlayerView.setOnTouchListener { _, event ->
-            scaleGestureDetector.onTouchEvent(event)
-            if (event?.let { TouchUtils.isAClick(event = it) } == true) {
-                binding.exoPlayerView.performClick()
+        binding.animePlayerControlView.player = player
+        binding.animePlayerControlView.setonQualitySelectionClickListener { showDialogForQualitySelection() }
+        binding.animePlayerControlView.setonSpeedSelectionClickListener { showDialogForSpeedSelection() }
+        binding.animePlayerControlView.setonEpisodeJumpListener(object :
+            AnimePlayerControlView.OnEpisodeJumpListener {
+            override fun onClickNextEpisode() {
+                playNextEpisode()
             }
-            true
-        }
+
+            override fun onClickPreviousEpisode() {
+                playPreviousEpisode()
+            }
+        })
     }
 
     private fun setClickListeners() {
-        binding.lytCustomControls.exoTrackSelectionView.setOnClickListener(this)
-        binding.lytCustomControls.exoSpeedSelectionView.setOnClickListener(this)
-        binding.lytCustomControls.exoRew.setOnClickListener(this)
-        binding.lytCustomControls.exoFfwd.setOnClickListener(this)
-        binding.lytErrorScreenVideoPlayer.errorButton.setOnClickListener(this)
-        binding.lytCustomControls.nextEpisode.setOnClickListener(this)
-        binding.lytCustomControls.previousEpisode.setOnClickListener(this)
+        binding.lytErrorScreenVideoPlayer.errorButton.setOnClickListener {
+            refreshData()
+        }
     }
 
     private fun buildMediaSource(url: String): MediaSource {
@@ -202,22 +190,8 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     fun updateContent(content: Content) {
         Timber.e("Content Updated uRL: ${content.urls}")
         this.content = content
-        binding.lytCustomControls.animeName.text = content.animeName
-        val text = content.episodeName
-        binding.lytCustomControls.episodeName.text = text
         binding.exoPlayerView.videoSurfaceView?.visibility = View.GONE
-
-        this.content.nextEpisodeUrl?.let {
-            binding.lytCustomControls.nextEpisode.visibility = View.VISIBLE
-        } ?: kotlin.run {
-            binding.lytCustomControls.nextEpisode.visibility = View.GONE
-        }
-        this.content.previousEpisodeUrl?.let {
-            binding.lytCustomControls.previousEpisode.visibility = View.VISIBLE
-        } ?: kotlin.run {
-            binding.lytCustomControls.previousEpisode.visibility = View.GONE
-        }
-
+        binding.animePlayerControlView.setContent(content)
         if (content.urls.isNotEmpty()) {
             try {
                 updateVideoUrl(content.urls[selectedQuality].url)
@@ -257,38 +231,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     }
 
-    override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.exo_track_selection_view -> {
-                showDialogForQualitySelection()
-            }
-
-            R.id.exo_speed_selection_view -> {
-                showDialogForSpeedSelection()
-            }
-
-            R.id.errorButton -> {
-                refreshData()
-            }
-
-            R.id.nextEpisode -> {
-                playNextEpisode()
-            }
-
-            R.id.exo_ffwd -> {
-                seekForward()
-            }
-
-            R.id.exo_rew -> {
-                seekRewind()
-            }
-
-            R.id.previousEpisode -> {
-                playPreviousEpisode()
-            }
-        }
-    }
-
     private fun showM3U8TrackSelector() {
         mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
@@ -312,21 +254,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
                 val videoQuality =/*trackSelections.get(0)!!.getFormat(0).height.toString() +*/ "p"
                 val quality = "Quality($videoQuality)"
                 Timber.e("Quality $quality")
-                binding.lytCustomControls.exoQuality.text = quality
-            } catch (ignored: Exception) {
-            }
-
-        }
-    }
-
-    override fun onTrackSelectionParametersChanged(parameters: TrackSelectionParameters) {
-        super.onTrackSelectionParametersChanged(parameters)
-        if (IS_MEDIA_M3U8) {
-            try {
-                val videoQuality = parameters.viewportHeight.toString() + "p"
-                val quality = "Quality($videoQuality)"
-                Timber.e("Quality $quality")
-                binding.lytCustomControls.exoQuality.text = quality
+                binding.animePlayerControlView.setQualityInfo(quality)
             } catch (ignored: Exception) {
             }
 
@@ -336,14 +264,12 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private fun listenToRemainingTime() {
         job = lifecycleScope.launch {
             while (isVideoPlaying) {
-                val totalDuration = player.duration
                 val watchedDuration = player.currentPosition
-                val remainingTime = Utils.getRemainingTime(
-                    watchedDuration = watchedDuration,
-                    totalDuration = totalDuration
+                binding.animePlayerControlView.setWatchedDuration(
+                    Utils.getWatchedDuration(
+                        watchedDuration
+                    )
                 )
-                binding.lytCustomControls.exoRemainingTime.text = remainingTime
-
                 delay(1000L)
             }
         }
@@ -358,49 +284,11 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
 
     }
 
-    private fun seekForward() {
-        seekExoPlayerForward()
-        CustomAnimation.rotateForward(binding.lytCustomControls.exoFfwd)
-        CustomAnimation.forwardAnimate(
-            binding.lytCustomControls.exoForwardPlus,
-            binding.lytCustomControls.exoForwardText
-        )
-    }
-
-    private fun seekExoPlayerForward() {
-        val isSeekForwardAvailable = (player.duration - player.currentPosition) > SEEK_DISTANCE
-        if (isSeekForwardAvailable) {
-            player.seekTo(player.currentPosition + SEEK_DISTANCE)
-        } else {
-            player.seekTo(player.duration)
-        }
-    }
-
-    private fun seekRewind() {
-        seekExoPlayerBackward()
-        CustomAnimation.rotateBackward(binding.lytCustomControls.exoRew)
-        CustomAnimation.rewindAnimate(
-            binding.lytCustomControls.exoRewindMinus,
-            binding.lytCustomControls.exoRewindText
-        )
-    }
-
-    private fun seekExoPlayerBackward() {
-        val isSeekBackwardAvailable = (player.currentPosition - SEEK_DISTANCE) > 0
-        if (isSeekBackwardAvailable) {
-            player.seekTo(player.currentPosition - SEEK_DISTANCE)
-        } else {
-            player.seekTo(0L)
-        }
-
-    }
-
     private fun playNextEpisode() {
         playOrPausePlayer(playWhenReady = false, loseAudioFocus = false)
         saveWatchedDuration()
         showLoading(true)
         (activity as VideoPlayerListener).playNextEpisode()
-
     }
 
     private fun playPreviousEpisode() {
@@ -408,7 +296,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         showLoading(true)
         saveWatchedDuration()
         (activity as VideoPlayerListener).playPreviousEpisode()
-
     }
 
     fun showLoading(showLoading: Boolean) {
@@ -418,7 +305,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             binding.lytVideoPlayerPlaceholder.videoPlayerLoading.visibility = View.GONE
         }
     }
-
 
     fun showErrorLayout(show: Boolean, errorMsgId: Int, errorCode: Int) {
         if (show) {
@@ -462,7 +348,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
     }
 
-
     private fun showDialogForQualitySelection() {
         if (IS_MEDIA_M3U8) {
             showM3U8TrackSelector()
@@ -488,13 +373,12 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         if (content.urls[index].url != videoUrl) {
             updateVideoUrl(content.urls[index].url, player.currentPosition)
         }
-
     }
 
     private fun updateQualityText(index: Int = 0) {
         selectedQuality = index
         val quality = "Quality(${content.urls[index].label})"
-        binding.lytCustomControls.exoQuality.text = quality
+        binding.animePlayerControlView.setQualityInfo(quality)
     }
 
     private fun getQualityArray(): ArrayList<String> {
@@ -518,7 +402,7 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         selectedSpeed = speed
         checkedItem = speed
         val speedText = "Speed(${showableSpeed[speed]})"
-        binding.lytCustomControls.exoSpeedText.text = speedText
+        binding.animePlayerControlView.setSpeedInfo(speedText)
         setPlaybackSpeed(speeds[selectedSpeed])
     }
 
@@ -570,22 +454,21 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         isVideoPlaying = playWhenReady
         if (isVideoPlaying) listenToRemainingTime() else job?.cancel()
         if (playbackState == Player.STATE_READY && playWhenReady) {
-            binding.lytCustomControls.exoPlay.setImageResource(R.drawable.ic_media_play)
-            binding.lytCustomControls.exoPause.setImageResource(R.drawable.ic_media_pause)
+//            binding.lytCustomControls.exoPlay.setImageResource(R.drawable.ic_media_play)
+//            binding.lytCustomControls.exoPause.setImageResource(R.drawable.ic_media_pause)
 
             playOrPausePlayer(true)
 
         }
         if (playbackState == Player.STATE_BUFFERING && playWhenReady) {
-            binding.lytCustomControls.exoPlay.setImageResource(0)
-            binding.lytCustomControls.exoPause.setImageResource(0)
+//            binding.lytCustomControls.exoPlay.setImageResource(0)
+//            binding.lytCustomControls.exoPause.setImageResource(0)
             showLoading(false)
         }
         if (playbackState == Player.STATE_READY) {
             binding.exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
         }
     }
-
 
     private fun initializeAudioManager() {
         audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
@@ -605,7 +488,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
         }
 
     }
-
 
     private fun requestAudioFocus(): Boolean {
 
@@ -693,7 +575,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
     private fun registerMediaSession() {
         mediaSession = MediaSession.Builder(requireContext(), player)
             .setId(TAG)
-            .setCallback(MySessionCallback())
             .build()
     }
 
@@ -711,10 +592,6 @@ class VideoPlayerFragment : Fragment(), View.OnClickListener, Player.Listener,
             }
         }
     }
-}
-
-class MySessionCallback : MediaSession.Callback {
-
 }
 
 interface VideoPlayerListener {
