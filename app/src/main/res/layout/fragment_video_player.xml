@@ -4,31 +4,35 @@
     android:id="@+id/videoPlayerContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/black"
-    android:focusable="false">
+    android:background="@android:color/black">
 
     <androidx.media3.ui.AspectRatioFrameLayout
         android:id="@+id/exoPlayerFrameLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:focusable="false"
         app:resize_mode="fill">
 
         <androidx.media3.ui.PlayerView
             android:id="@+id/exoPlayerView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:focusable="true"
             app:resize_mode="fit"
             app:show_buffering="when_playing"
             app:show_timeout="3000"
             app:surface_type="surface_view" />
     </androidx.media3.ui.AspectRatioFrameLayout>
 
+    <include
+        android:id="@+id/lytCustomControls"
+        layout="@layout/exo_player_custom_controls" />
 
-    <include layout="@layout/fragment_video_player_placeholder" />
+    <include
+        android:id="@+id/lytVideoPlayerPlaceholder"
+        layout="@layout/fragment_video_player_placeholder" />
 
-    <include layout="@layout/error_screen_video_player" />
+    <include
+        android:id="@+id/lytErrorScreenVideoPlayer"
+        layout="@layout/error_screen_video_player" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

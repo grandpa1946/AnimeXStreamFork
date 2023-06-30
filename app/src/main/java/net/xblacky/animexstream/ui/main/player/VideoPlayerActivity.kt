@@ -9,6 +9,7 @@ import android.view.WindowInsetsController
 import android.view.WindowManager
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
 import dagger.hilt.android.AndroidEntryPoint
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.databinding.ActivityVideoPlayerBinding
@@ -17,7 +18,7 @@ import net.xblacky.animexstream.utils.preference.Preference
 import timber.log.Timber
 import javax.inject.Inject
 
-
+@UnstableApi
 @AndroidEntryPoint
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
@@ -44,20 +45,22 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
     private fun addVideoPlayerFragment() {
         val transaction = supportFragmentManager.beginTransaction()
-        transaction.add(binding.playerActivityContainer.id, VideoPlayerFragment())
+        transaction.add(
+            binding.playerActivityContainer.id,
+            VideoPlayerFragment::class.java,
+            null,
+            VideoPlayerFragment.TAG
+        )
         transaction.commit()
     }
 
 
     override fun onNewIntent(intent: Intent?) {
-        getPlayerFragment()?.let { playerFragment ->
-            playerFragment.playOrPausePlayer(
-                playWhenReady = false,
-                loseAudioFocus = false
-            )
-            playerFragment.saveWatchedDuration()
-        }
-
+        getPlayerFragment()?.playOrPausePlayer(
+            playWhenReady = false,
+            loseAudioFocus = false
+        )
+        getPlayerFragment()?.saveWatchedDuration()
         getExtra(intent)
         super.onNewIntent(intent)
     }
@@ -84,24 +87,29 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData()
     }
 
+    override fun finish() {
+        super.finish()
+        overridePendingTransition(android.R.anim.fade_in, R.anim.slide_in_down)
+    }
+
     private fun setObserver() {
         viewModel.content.observe(this) {
             this.content = it
             it?.let {
                 if (it.urls.isNotEmpty()) {
-//                    getPlayerFragment()?.updateContent(it)
+                    getPlayerFragment()?.updateContent(it)
                 }
             }
         }
         viewModel.isLoading.observe(this) {
-//            getPlayerFragment()?.showLoading(it.isLoading)
+            getPlayerFragment()?.showLoading(it.isLoading)
         }
         viewModel.errorModel.observe(this) {
-            /*getPlayerFragment()?.showErrorLayout(
+            getPlayerFragment()?.showErrorLayout(
                 it.show,
                 it.errorMsgId,
                 it.errorCode
-            )*/
+            )
         }
 
         viewModel.cdnServer.observe(this) {
@@ -195,5 +203,5 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     }
 
     private fun getPlayerFragment() =
-        supportFragmentManager.findFragmentByTag(getString(R.string.video_player_fragment_tag)) as? VideoPlayerFragment
+        supportFragmentManager.findFragmentByTag(VideoPlayerFragment.TAG) as? VideoPlayerFragment
 }
