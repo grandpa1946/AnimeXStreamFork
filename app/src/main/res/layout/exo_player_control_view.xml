@@ -46,19 +46,18 @@
         tools:text="Episode 7" />
 
 
+
     <ImageButton
-        android:id="@+id/exo_play"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="10dp"
-        android:src="@drawable/ic_media_play"
+        android:id="@id/exo_play"
+        style="@style/ExoMediaButton.Play"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:src="@drawable/anim_play_to_pause"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -112,21 +111,6 @@
             app:layout_constraintVertical_bias="0.55" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-    <ImageButton
-        android:id="@+id/exo_pause"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?selectableItemBackgroundBorderless"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="10dp"
-        android:src="@drawable/ic_media_pause"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/exo_forward_container"

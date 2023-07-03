@@ -25,7 +25,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
-import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.HttpDataSource
@@ -51,6 +51,7 @@ import net.xblacky.animexstream.R
 import net.xblacky.animexstream.databinding.FragmentVideoPlayerBinding
 import net.xblacky.animexstream.ui.main.player.di.PlayerDI
 import net.xblacky.animexstream.utils.Utils
+import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
@@ -62,8 +63,7 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class VideoPlayerFragment : Fragment(), Player.Listener,
-    AudioManager.OnAudioFocusChangeListener {
+class VideoPlayerFragment : Fragment(), AudioManager.OnAudioFocusChangeListener {
 
     companion object {
         val TAG = VideoPlayerFragment::class.java.simpleName
@@ -89,6 +89,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
     private lateinit var handler: Handler
     private var isVideoPlaying: Boolean = false
     private var IS_MEDIA_M3U8 = false
+    private var isInitialized = false
 
     private lateinit var sharedPreferences: Preference
 
@@ -102,17 +103,37 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
     private var _binding: FragmentVideoPlayerBinding? = null
     private val binding get() = _binding!!
 
+    private lateinit var exoPlay: ImageButton
+    private lateinit var exoForward: ImageButton
+    private lateinit var exoRewind: ImageButton
+    private lateinit var exoNextEpisode: View
+    private lateinit var exoPreviousEpisode: View
+    private lateinit var exoQuality: View
+    private lateinit var exoSpeed: View
+
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentVideoPlayerBinding.inflate(inflater, container, false)
+        initUi()
         setClickListeners()
         initializeAudioManager()
         initializePlayer()
         sharedPreferences = Preference(requireContext())
         return binding.root
+    }
+
+    private fun initUi() {
+        exoPlay = binding.exoPlayerView.findViewById(androidx.media3.ui.R.id.exo_play)
+        exoForward = binding.exoPlayerView.findViewById(androidx.media3.ui.R.id.exo_ffwd)
+        exoRewind = binding.exoPlayerView.findViewById(androidx.media3.ui.R.id.exo_rew)
+        exoNextEpisode = binding.exoPlayerView.findViewById(R.id.nextEpisode)
+        exoPreviousEpisode = binding.exoPlayerView.findViewById(R.id.previousEpisode)
+        exoQuality = binding.exoPlayerView.findViewById(R.id.exo_track_selection_view)
+        exoSpeed = binding.exoPlayerView.findViewById(R.id.exo_speed_selection_view)
     }
 
     override fun onDestroyView() {
@@ -145,12 +166,33 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
 
         player.playWhenReady = true
         player.setAudioAttributes(audioAttributes, false)
-        player.addListener(this)
+        player.addListener(PlayerListener())
         player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
         binding.exoPlayerView.player = player
+        isInitialized = true
     }
 
     private fun setClickListeners() {
+        exoPlay.setOnClickListener {
+            if (isInitialized) {
+                isVideoPlaying = player.isPlaying
+                (exoPlay.drawable as Animatable?)?.start()
+                if (isVideoPlaying) {
+                    Glide.with(this).load(R.drawable.anim_play_to_pause).into(exoPlay)
+                    player.pause()
+                } else {
+                    Glide.with(this).load(R.drawable.anim_pause_to_play).into(exoPlay)
+                    player.play()
+                }
+            }
+        }
+
+        exoForward.setOnClickListener { seekForward() }
+        exoRewind.setOnClickListener { seekRewind() }
+        exoNextEpisode.setOnClickListener { playNextEpisode() }
+        exoPreviousEpisode.setOnClickListener { playPreviousEpisode() }
+        exoQuality.setOnClickListener { showDialogForQualitySelection() }
+        exoSpeed.setOnClickListener { showDialogForSpeedSelection() }
     }
 
     private fun buildMediaSource(url: String): MediaSource {
@@ -225,38 +267,6 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
 
     }
 
-    /*override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.exo_track_selection_view -> {
-                showDialogForQualitySelection()
-            }
-
-            R.id.exo_speed_selection_view -> {
-                showDialogForSpeedSelection()
-            }
-
-            R.id.errorButton -> {
-                refreshData()
-            }
-
-            R.id.nextEpisode -> {
-                playNextEpisode()
-            }
-
-            R.id.exo_ffwd -> {
-                seekForward()
-            }
-
-            R.id.exo_rew -> {
-                seekRewind()
-            }
-
-            R.id.previousEpisode -> {
-                playPreviousEpisode()
-            }
-        }
-    }*/
-
     private fun showM3U8TrackSelector() {
         mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
@@ -265,26 +275,11 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
                 requireContext(),
                 getString(R.string.video_quality),
                 player,
-                0
-
+                C.TRACK_TYPE_VIDEO
             ).build().show()
-        } catch (ignored: java.lang.NullPointerException) {
+        } catch (ignored: NullPointerException) {
         }
 
-    }
-
-    override fun onTracksChanged(tracks: Tracks) {
-        super.onTracksChanged(tracks)
-        if (IS_MEDIA_M3U8) {
-            try {
-                val videoQuality =/*trackSelections.get(0)!!.getFormat(0).height.toString() +*/ "p"
-                val quality = "Quality($videoQuality)"
-                Timber.e("Quality $quality")
-                binding.exoPlayerView.findViewById<TextView>(R.id.exo_quality).text = quality
-            } catch (ignored: Exception) {
-            }
-
-        }
     }
 
     private fun listenToRemainingTime() {
@@ -309,11 +304,11 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
 
     private fun seekForward() {
         seekExoPlayerForward()
-        /*CustomAnimation.rotateForward(binding.lytCustomControls.exoFfwd)
+        CustomAnimation.rotateForward(binding.exoPlayerView.findViewById(R.id.exo_ffwd))
         CustomAnimation.forwardAnimate(
-            binding.lytCustomControls.exoForwardPlus,
-            binding.lytCustomControls.exoForwardText
-        )*/
+            binding.exoPlayerView.findViewById(R.id.exo_forward_plus),
+            binding.exoPlayerView.findViewById(R.id.exo_forward_text)
+        )
     }
 
     private fun seekExoPlayerForward() {
@@ -327,11 +322,11 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
 
     private fun seekRewind() {
         seekExoPlayerBackward()
-        /*CustomAnimation.rotateBackward(binding.lytCustomControls.exoRew)
+        CustomAnimation.rotateBackward(binding.exoPlayerView.findViewById(R.id.exo_rew))
         CustomAnimation.rewindAnimate(
-            binding.lytCustomControls.exoRewindMinus,
-            binding.lytCustomControls.exoRewindText
-        )*/
+            binding.exoPlayerView.findViewById(R.id.exo_rewind_minus),
+            binding.exoPlayerView.findViewById(R.id.exo_rewind_text)
+        )
     }
 
     private fun seekExoPlayerBackward() {
@@ -482,58 +477,6 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
         dialog.show()
     }
 
-    override fun onPlayerError(error: PlaybackException) {
-        isVideoPlaying = false
-        val cause = error.cause
-        if (cause is HttpDataSource.HttpDataSourceException) {
-            // An HTTP error occurred.
-            val httpError: HttpDataSource.HttpDataSourceException = cause
-            // This is the request for which the error occurred.
-            // querying the cause.
-            if (httpError is HttpDataSource.InvalidResponseCodeException) {
-                val responseCode = httpError.responseCode
-                content.urls = ArrayList()
-                showErrorLayout(
-                    show = true,
-                    errorMsgId = R.string.server_error,
-                    errorCode = RESPONSE_UNKNOWN
-                )
-
-                Timber.e("Response Code $responseCode")
-                // message and headers.
-            } else {
-                showErrorLayout(
-                    show = true,
-                    errorMsgId = R.string.no_internet,
-                    errorCode = NO_INTERNET_CONNECTION
-                )
-            }
-        }
-
-    }
-
-    override fun onPlayerStateChanged(playWhenReady: Boolean, playbackState: Int) {
-        isVideoPlaying = playWhenReady
-        if (isVideoPlaying) listenToRemainingTime() else job?.cancel()
-        if (playbackState == Player.STATE_READY && playWhenReady) {
-            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_play)
-                .setImageResource(R.drawable.ic_media_play)
-            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_pause)
-                .setImageResource(R.drawable.ic_media_pause)
-
-            playOrPausePlayer(true)
-
-        }
-        if (playbackState == Player.STATE_BUFFERING && playWhenReady) {
-            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_play).setImageResource(0)
-            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_pause).setImageResource(0)
-            showLoading(false)
-        }
-        if (playbackState == Player.STATE_READY) {
-            binding.exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
-        }
-    }
-
     private fun initializeAudioManager() {
         audioManager = context?.getSystemService(Context.AUDIO_SERVICE) as AudioManager
 
@@ -639,7 +582,6 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
     private fun registerMediaSession() {
         mediaSession = MediaSession.Builder(requireContext(), player)
             .setId(TAG)
-            .setCallback(MySessionCallback())
             .build()
     }
 
@@ -657,10 +599,73 @@ class VideoPlayerFragment : Fragment(), Player.Listener,
             }
         }
     }
-}
 
-class MySessionCallback : MediaSession.Callback {
+    inner class PlayerListener : Player.Listener {
+        private var isBuffering = true
 
+        override fun onVideoSizeChanged(videoSize: VideoSize) {
+            super.onVideoSizeChanged(videoSize)
+            val videoHeight = "${videoSize.height}p"
+            binding.exoPlayerView.findViewById<TextView>(R.id.exo_quality).text = videoHeight
+        }
+
+        override fun onPlayerError(error: PlaybackException) {
+            isVideoPlaying = false
+            val cause = error.cause
+            if (cause is HttpDataSource.HttpDataSourceException) {
+                // An HTTP error occurred.
+                val httpError: HttpDataSource.HttpDataSourceException = cause
+                // This is the request for which the error occurred.
+                // querying the cause.
+                if (httpError is HttpDataSource.InvalidResponseCodeException) {
+                    val responseCode = httpError.responseCode
+                    content.urls = ArrayList()
+                    showErrorLayout(
+                        show = true,
+                        errorMsgId = R.string.server_error,
+                        errorCode = RESPONSE_UNKNOWN
+                    )
+
+                    Timber.e("Response Code $responseCode")
+                    // message and headers.
+                } else {
+                    showErrorLayout(
+                        show = true,
+                        errorMsgId = R.string.no_internet,
+                        errorCode = NO_INTERNET_CONNECTION
+                    )
+                }
+            }
+
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            if (playbackState == ExoPlayer.STATE_READY) {
+                binding.exoPlayerView.videoSurfaceView?.visibility = View.VISIBLE
+                playOrPausePlayer(true)
+            }
+            isBuffering = playbackState == Player.STATE_BUFFERING
+            if (playbackState == Player.STATE_ENDED) {
+                playNextEpisode()
+            }
+            super.onPlaybackStateChanged(playbackState)
+        }
+
+        override fun onIsPlayingChanged(isPlaying: Boolean) {
+            if (!isBuffering) {
+                isVideoPlaying = isPlaying
+                if (isVideoPlaying) {
+                    listenToRemainingTime()
+                } else {
+                    job?.cancel()
+                }
+                (exoPlay.drawable as Animatable?)?.start()
+                if (!this@VideoPlayerFragment.isDetached) Glide.with(requireContext())
+                    .load(if (isPlaying) R.drawable.anim_play_to_pause else R.drawable.anim_pause_to_play)
+                    .into(exoPlay)
+            }
+        }
+    }
 }
 
 interface VideoPlayerListener {
