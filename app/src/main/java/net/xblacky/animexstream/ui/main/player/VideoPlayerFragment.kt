@@ -1,6 +1,7 @@
 package net.xblacky.animexstream.ui.main.player
 
 import android.content.Context
+import android.graphics.drawable.Animatable
 import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.net.Uri
@@ -8,12 +9,14 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.view.LayoutInflater
-import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.ImageButton
+import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.res.ResourcesCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.AudioAttributes
@@ -38,6 +41,8 @@ import androidx.media3.exoplayer.trackselection.ExoTrackSelection
 import androidx.media3.exoplayer.trackselection.MappingTrackSelector
 import androidx.media3.session.MediaSession
 import androidx.media3.ui.TrackSelectionDialogBuilder
+import com.bumptech.glide.Glide
+import com.google.android.material.textview.MaterialTextView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -45,24 +50,24 @@ import kotlinx.coroutines.launch
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.databinding.FragmentVideoPlayerBinding
 import net.xblacky.animexstream.ui.main.player.di.PlayerDI
-import net.xblacky.animexstream.ui.main.player.utils.CustomOnScaleGestureListener
 import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.constants.C.Companion.ERROR_CODE_DEFAULT
 import net.xblacky.animexstream.utils.constants.C.Companion.NO_INTERNET_CONNECTION
 import net.xblacky.animexstream.utils.constants.C.Companion.RESPONSE_UNKNOWN
 import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
-import net.xblacky.animexstream.utils.touchevents.TouchUtils
 import okhttp3.OkHttpClient
 import timber.log.Timber
 import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
-class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFocusChangeListener {
+class VideoPlayerFragment : Fragment(), Player.Listener,
+    AudioManager.OnAudioFocusChangeListener {
 
     companion object {
         val TAG = VideoPlayerFragment::class.java.simpleName
+        private const val SEEK_DISTANCE = 10000L
         private const val DEFAULT_MEDIA_VOLUME = 1f
         private const val DUCK_MEDIA_VOLUME = 0.2f
     }
@@ -143,28 +148,9 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
         player.addListener(this)
         player.setSeekParameters(SeekParameters.CLOSEST_SYNC)
         binding.exoPlayerView.player = player
-        binding.exoPlayerView.requestFocus()
-        binding.exoPlayerView.controllerAutoShow = false
-
-        binding.animePlayerControlView.player = player
-        binding.animePlayerControlView.setonQualitySelectionClickListener { showDialogForQualitySelection() }
-        binding.animePlayerControlView.setonSpeedSelectionClickListener { showDialogForSpeedSelection() }
-        binding.animePlayerControlView.setonEpisodeJumpListener(object :
-            AnimePlayerControlView.OnEpisodeJumpListener {
-            override fun onClickNextEpisode() {
-                playNextEpisode()
-            }
-
-            override fun onClickPreviousEpisode() {
-                playPreviousEpisode()
-            }
-        })
     }
 
     private fun setClickListeners() {
-        binding.lytErrorScreenVideoPlayer.errorButton.setOnClickListener {
-            refreshData()
-        }
     }
 
     private fun buildMediaSource(url: String): MediaSource {
@@ -190,8 +176,16 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
     fun updateContent(content: Content) {
         Timber.e("Content Updated uRL: ${content.urls}")
         this.content = content
+        binding.exoPlayerView.findViewById<MaterialTextView>(R.id.animeName).text =
+            content.animeName
+        val text = content.episodeName
+        binding.exoPlayerView.findViewById<MaterialTextView>(R.id.episodeName).text = text
         binding.exoPlayerView.videoSurfaceView?.visibility = View.GONE
-        binding.animePlayerControlView.setContent(content)
+        binding.exoPlayerView.findViewById<View>(R.id.nextEpisode).isVisible =
+            !this.content.nextEpisodeUrl.isNullOrBlank()
+        binding.exoPlayerView.findViewById<View>(R.id.previousEpisode).isVisible =
+            !this.content.previousEpisodeUrl.isNullOrBlank()
+
         if (content.urls.isNotEmpty()) {
             try {
                 updateVideoUrl(content.urls[selectedQuality].url)
@@ -231,6 +225,38 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
 
     }
 
+    /*override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.exo_track_selection_view -> {
+                showDialogForQualitySelection()
+            }
+
+            R.id.exo_speed_selection_view -> {
+                showDialogForSpeedSelection()
+            }
+
+            R.id.errorButton -> {
+                refreshData()
+            }
+
+            R.id.nextEpisode -> {
+                playNextEpisode()
+            }
+
+            R.id.exo_ffwd -> {
+                seekForward()
+            }
+
+            R.id.exo_rew -> {
+                seekRewind()
+            }
+
+            R.id.previousEpisode -> {
+                playPreviousEpisode()
+            }
+        }
+    }*/
+
     private fun showM3U8TrackSelector() {
         mappedTrackInfo = trackSelector.currentMappedTrackInfo
 
@@ -254,7 +280,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
                 val videoQuality =/*trackSelections.get(0)!!.getFormat(0).height.toString() +*/ "p"
                 val quality = "Quality($videoQuality)"
                 Timber.e("Quality $quality")
-                binding.animePlayerControlView.setQualityInfo(quality)
+                binding.exoPlayerView.findViewById<TextView>(R.id.exo_quality).text = quality
             } catch (ignored: Exception) {
             }
 
@@ -265,11 +291,8 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
         job = lifecycleScope.launch {
             while (isVideoPlaying) {
                 val watchedDuration = player.currentPosition
-                binding.animePlayerControlView.setWatchedDuration(
-                    Utils.getWatchedDuration(
-                        watchedDuration
-                    )
-                )
+                binding.exoPlayerView.findViewById<TextView>(R.id.exo_duration).text =
+                    Utils.getWatchedDuration(watchedDuration)
                 delay(1000L)
             }
         }
@@ -280,6 +303,43 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
             loadVideo(player.currentPosition, true)
         } else {
             (activity as VideoPlayerActivity).refreshM3u8Url()
+        }
+
+    }
+
+    private fun seekForward() {
+        seekExoPlayerForward()
+        /*CustomAnimation.rotateForward(binding.lytCustomControls.exoFfwd)
+        CustomAnimation.forwardAnimate(
+            binding.lytCustomControls.exoForwardPlus,
+            binding.lytCustomControls.exoForwardText
+        )*/
+    }
+
+    private fun seekExoPlayerForward() {
+        val isSeekForwardAvailable = (player.duration - player.currentPosition) > SEEK_DISTANCE
+        if (isSeekForwardAvailable) {
+            player.seekTo(player.currentPosition + SEEK_DISTANCE)
+        } else {
+            player.seekTo(player.duration)
+        }
+    }
+
+    private fun seekRewind() {
+        seekExoPlayerBackward()
+        /*CustomAnimation.rotateBackward(binding.lytCustomControls.exoRew)
+        CustomAnimation.rewindAnimate(
+            binding.lytCustomControls.exoRewindMinus,
+            binding.lytCustomControls.exoRewindText
+        )*/
+    }
+
+    private fun seekExoPlayerBackward() {
+        val isSeekBackwardAvailable = (player.currentPosition - SEEK_DISTANCE) > 0
+        if (isSeekBackwardAvailable) {
+            player.seekTo(player.currentPosition - SEEK_DISTANCE)
+        } else {
+            player.seekTo(0L)
         }
 
     }
@@ -305,6 +365,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
             binding.lytVideoPlayerPlaceholder.videoPlayerLoading.visibility = View.GONE
         }
     }
+
 
     fun showErrorLayout(show: Boolean, errorMsgId: Int, errorCode: Int) {
         if (show) {
@@ -348,6 +409,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
         }
     }
 
+
     private fun showDialogForQualitySelection() {
         if (IS_MEDIA_M3U8) {
             showM3U8TrackSelector()
@@ -378,7 +440,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
     private fun updateQualityText(index: Int = 0) {
         selectedQuality = index
         val quality = "Quality(${content.urls[index].label})"
-        binding.animePlayerControlView.setQualityInfo(quality)
+        binding.exoPlayerView.findViewById<TextView>(R.id.exo_quality).text = quality
     }
 
     private fun getQualityArray(): ArrayList<String> {
@@ -402,7 +464,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
         selectedSpeed = speed
         checkedItem = speed
         val speedText = "Speed(${showableSpeed[speed]})"
-        binding.animePlayerControlView.setSpeedInfo(speedText)
+        binding.exoPlayerView.findViewById<TextView>(R.id.exo_playback_speed).text = speedText
         setPlaybackSpeed(speeds[selectedSpeed])
     }
 
@@ -454,15 +516,17 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
         isVideoPlaying = playWhenReady
         if (isVideoPlaying) listenToRemainingTime() else job?.cancel()
         if (playbackState == Player.STATE_READY && playWhenReady) {
-//            binding.lytCustomControls.exoPlay.setImageResource(R.drawable.ic_media_play)
-//            binding.lytCustomControls.exoPause.setImageResource(R.drawable.ic_media_pause)
+            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_play)
+                .setImageResource(R.drawable.ic_media_play)
+            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_pause)
+                .setImageResource(R.drawable.ic_media_pause)
 
             playOrPausePlayer(true)
 
         }
         if (playbackState == Player.STATE_BUFFERING && playWhenReady) {
-//            binding.lytCustomControls.exoPlay.setImageResource(0)
-//            binding.lytCustomControls.exoPause.setImageResource(0)
+            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_play).setImageResource(0)
+            binding.exoPlayerView.findViewById<ImageButton>(R.id.exo_pause).setImageResource(0)
             showLoading(false)
         }
         if (playbackState == Player.STATE_READY) {
@@ -575,6 +639,7 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
     private fun registerMediaSession() {
         mediaSession = MediaSession.Builder(requireContext(), player)
             .setId(TAG)
+            .setCallback(MySessionCallback())
             .build()
     }
 
@@ -592,6 +657,10 @@ class VideoPlayerFragment : Fragment(), Player.Listener, AudioManager.OnAudioFoc
             }
         }
     }
+}
+
+class MySessionCallback : MediaSession.Callback {
+
 }
 
 interface VideoPlayerListener {

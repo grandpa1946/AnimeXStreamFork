@@ -18,15 +18,9 @@
             android:layout_height="match_parent"
             app:resize_mode="fit"
             app:show_buffering="when_playing"
-            app:controller_layout_id="@null"
             app:show_timeout="3000"
             app:surface_type="surface_view" />
     </androidx.media3.ui.AspectRatioFrameLayout>
-
-    <net.xblacky.animexstream.ui.main.player.AnimePlayerControlView
-        android:id="@+id/anime_player_control_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
 
     <include
         android:id="@+id/lytVideoPlayerPlaceholder"

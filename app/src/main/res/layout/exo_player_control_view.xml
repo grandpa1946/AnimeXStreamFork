@@ -18,33 +18,28 @@
         app:layout_constraintStart_toStartOf="@id/startGuideLine"
         app:layout_constraintTop_toTopOf="@id/topGuideLine" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/animeName"
         android:layout_width="wrap_content"
+        style="@style/TextAppearance.Material3.TitleMedium"
         android:layout_height="wrap_content"
         android:layout_marginStart="4dp"
-        android:fontFamily="sans-serif"
-        android:maxWidth="450dp"
         android:maxLines="2"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
         app:layout_constraintBottom_toBottomOf="@id/back"
         app:layout_constraintEnd_toEndOf="@id/endGuideLine"
         app:layout_constraintStart_toStartOf="@id/startGuideLine"
         app:layout_constraintTop_toTopOf="@id/topGuideLine"
         tools:text="Naruto Shippuden" />
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/episodeName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        style="@style/TextAppearance.Material3.LabelMedium"
         android:layout_marginStart="4dp"
         android:layout_marginTop="4dp"
-        android:fontFamily="sans-serif"
         android:maxWidth="450dp"
         android:maxLines="2"
-        android:textColor="@android:color/white"
-        android:textSize="12sp"
         app:layout_constraintEnd_toEndOf="@id/endGuideLine"
         app:layout_constraintStart_toStartOf="@id/startGuideLine"
         app:layout_constraintTop_toBottomOf="@id/animeName"
@@ -191,7 +186,7 @@
         android:progressTint="@color/media_player_controls"
         app:bar_height="2dp"
         app:layout_constraintBottom_toTopOf="@id/extraControls"
-        app:layout_constraintEnd_toStartOf="@id/exo_remaining_time"
+        app:layout_constraintEnd_toStartOf="@id/exo_duration"
         app:layout_constraintStart_toStartOf="@id/startGuideLine"
         app:played_color="@color/media_player_controls"
         app:scrubber_color="@color/media_player_controls"
@@ -258,7 +253,7 @@
                 app:srcCompat="@drawable/ic_speed" />
 
             <TextView
-                android:id="@+id/exoSpeedText"
+                android:id="@+id/exo_playback_speed"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -288,7 +283,7 @@
                 app:srcCompat="@drawable/ic_quality" />
 
             <TextView
-                android:id="@+id/exoQuality"
+                android:id="@+id/exo_quality"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -327,7 +322,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <TextView
-        android:id="@+id/exo_remaining_time"
+        android:id="@+id/exo_duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textColor="@color/media_player_controls"
@@ -336,38 +331,6 @@
         app:layout_constraintEnd_toEndOf="@id/endGuideLine"
         app:layout_constraintTop_toTopOf="@id/exo_progress"
         tools:text="20:30" />
-
-    <!--    <TextView-->
-    <!--        android:id="@+id/exo_track_selection_view"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginEnd="10dp"-->
-    <!--        android:background="?selectableItemBackgroundBorderless"-->
-    <!--        android:paddingStart="20dp"-->
-    <!--        android:paddingTop="20dp"-->
-    <!--        android:paddingEnd="10dp"-->
-    <!--        android:paddingBottom="20dp"-->
-    <!--        android:text="@string/speed"-->
-    <!--        android:textColor="@color/media_player_controls"-->
-    <!--        android:textStyle="bold"-->
-    <!--        app:layout_constraintEnd_toStartOf="@id/exo_track_selection_view"-->
-    <!--        app:layout_constraintTop_toTopOf="parent" />-->
-
-    <!--    <TextView-->
-    <!--        android:id="@+id/exo_track_selection_view"-->
-    <!--        android:layout_width="wrap_content"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:layout_marginEnd="10dp"-->
-    <!--        android:background="?selectableItemBackgroundBorderless"-->
-    <!--        android:paddingStart="20dp"-->
-    <!--        android:paddingTop="20dp"-->
-    <!--        android:paddingEnd="10dp"-->
-    <!--        android:paddingBottom="20dp"-->
-    <!--        android:text="@string/quality_auto"-->
-    <!--        android:textColor="@color/media_player_controls"-->
-    <!--        android:textStyle="bold"-->
-    <!--        app:layout_constraintEnd_toStartOf="@id/exo_full_Screen"-->
-    <!--        app:layout_constraintTop_toTopOf="parent" />-->
 
 
     <androidx.constraintlayout.widget.Guideline
