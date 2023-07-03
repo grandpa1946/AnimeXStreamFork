@@ -136,7 +136,6 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
     }
 
     private fun setClickListeners() {
-        binding.header.setOnClickListener(this)
         binding.search.setOnClickListener(this)
         binding.favorite.setOnClickListener(this)
     }

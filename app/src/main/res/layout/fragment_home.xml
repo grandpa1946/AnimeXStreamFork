@@ -7,77 +7,60 @@
     android:transitionGroup="true"
     app:layoutDescription="@xml/motion_scene">
 
-    <TextView
-        android:id="@+id/header"
-        android:layout_width="wrap_content"
-        android:layout_height="80dp"
-        android:fontFamily="sans-serif-medium"
-        android:orientation="vertical"
-        android:paddingLeft="20dp"
-        android:paddingTop="20dp"
-        android:paddingRight="20dp"
-        android:paddingBottom="10dp"
-        android:focusable="false"
-        android:text="@string/discover"
-        android:textColor="@color/home_header"
-        android:textSize="36sp" />
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/tbHome"
+        style="@style/Widget.Material3.Toolbar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:title="@string/discover"
+        app:titleTextAppearance="@style/TextAppearance.Material3.HeadlineMedium"
+        app:titleTextColor="?colorOnPrimaryContainer" />
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/search"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="10dp"
-        android:background="?selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:padding="10dp"
-        android:src="@drawable/ic_search"
         android:transitionName="@string/search_transition"
+        app:icon="@drawable/ic_search"
         app:layout_constraintBottom_toTopOf="@id/shadowLayout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.appcompat.widget.AppCompatImageView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/favorite"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
+        style="@style/Widget.Material3.Button.IconButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
-        android:background="?selectableItemBackgroundBorderless"
         android:clickable="true"
         android:focusable="true"
         android:padding="10dp"
-        android:src="@drawable/ic_favorite"
         android:transitionName="@string/favourite_transition"
+        app:icon="@drawable/ic_favorite"
         app:layout_constraintBottom_toTopOf="@id/shadowLayout"
         app:layout_constraintEnd_toStartOf="@id/search"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/shadowLayout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="300dp"
-        android:background="@color/app_background"
-        android:elevation="0dp"
-        android:focusable="false"
-        android:orientation="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header" />
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:clipToPadding="false"
-        android:paddingBottom="25dp"
         android:focusable="false"
+        android:paddingBottom="25dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/header" />
+        app:layout_constraintTop_toBottomOf="@id/tbHome" />
 
 </androidx.constraintlayout.motion.widget.MotionLayout>

@@ -9,6 +9,7 @@ import com.airbnb.epoxy.EpoxyHolder
 import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
 import com.bumptech.glide.Glide
+import com.google.android.material.textview.MaterialTextView
 import net.xblacky.animexstream.R
 import net.xblacky.animexstream.utils.model.AnimeMetaModel
 import net.xblacky.animexstream.utils.tags.GenreTags
@@ -28,7 +29,7 @@ abstract class AnimeSubDubModel2 : EpoxyModelWithHolder<AnimeSubDubModel2.SubDub
         Glide.with(holder.animeImageView.context).load(animeMetaModel.imageUrl)
             .into(holder.animeImageView)
         holder.animeTitle.text = animeMetaModel.title
-        holder.animeEpisode.text = animeMetaModel.episodeNumber
+        holder.episodesCount.text = animeMetaModel.episodeNumber
         holder.rootLayout.setOnClickListener(clickListener)
 
         //Set Shared Element for Anime Title
@@ -50,14 +51,14 @@ abstract class AnimeSubDubModel2 : EpoxyModelWithHolder<AnimeSubDubModel2.SubDub
 
         lateinit var animeImageView: AppCompatImageView
         lateinit var animeTitle: TextView
-        lateinit var animeEpisode: TextView
+        lateinit var episodesCount: TextView
         lateinit var rootLayout: View
 
         override fun bindView(itemView: View) {
-            rootLayout = itemView.findViewById(R.id.rootLayout)
+            rootLayout = itemView
             animeImageView = itemView.findViewById(R.id.animeImage)
             animeTitle = itemView.findViewById(R.id.animeTitle)
-            animeEpisode = itemView.findViewById(R.id.episodeNumber)
+            episodesCount = itemView.findViewById(R.id.episodesCount)
         }
 
     }
@@ -137,17 +138,15 @@ abstract class AnimeMiniHeaderModel :
         holder.animeType.text = typeName
     }
 
-
     class AnimeMiniHeaderHolder : EpoxyHolder() {
 
-        lateinit var animeType: TextView
+        lateinit var animeType: MaterialTextView
 
         override fun bindView(itemView: View) {
             animeType = itemView.findViewById(R.id.typeName)
         }
 
     }
-
 }
 
 

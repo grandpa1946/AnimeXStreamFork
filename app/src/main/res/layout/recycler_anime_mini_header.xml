@@ -10,15 +10,13 @@
     android:paddingRight="20dp"
     android:layout_height="wrap_content">
 
-    <TextView
+    <com.google.android.material.textview.MaterialTextView
         android:id="@+id/typeName"
+        style="@style/TextAppearance.Material3.TitleMedium"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-medium"
         android:paddingTop="20dp"
         android:paddingBottom="26dp"
-        android:textSize="18sp"
-        android:textColor="@color/recycler_mini_header_title"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
