@@ -13,7 +13,7 @@
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/animeImage"
             android:layout_width="0dp"
-            android:layout_height="200dp"
+            android:layout_height="160dp"
             android:focusable="false"
             android:scaleType="centerCrop"
             app:layout_constraintDimensionRatio="H,4:3"

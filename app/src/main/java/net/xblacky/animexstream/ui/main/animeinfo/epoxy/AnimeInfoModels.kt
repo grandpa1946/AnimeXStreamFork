@@ -9,6 +9,9 @@ import com.airbnb.epoxy.EpoxyAttribute
 import com.airbnb.epoxy.EpoxyHolder
 import com.airbnb.epoxy.EpoxyModelClass
 import com.airbnb.epoxy.EpoxyModelWithHolder
+import com.google.android.material.card.MaterialCardView
+import com.google.android.material.progressindicator.LinearProgressIndicator
+import com.google.android.material.textview.MaterialTextView
 import net.xblacky.animexstream.R
 
 @EpoxyModelClass(layout = R.layout.recycler_episode_item)
@@ -42,9 +45,9 @@ abstract class EpisodeModel : EpoxyModelWithHolder<EpisodeModel.HomeHeaderHolder
     }
 
     class HomeHeaderHolder : EpoxyHolder() {
-        lateinit var episodeText: TextView
-        lateinit var cardView: CardView
-        lateinit var progressBar: ProgressBar
+        lateinit var episodeText: MaterialTextView
+        lateinit var cardView: MaterialCardView
+        lateinit var progressBar: LinearProgressIndicator
 
         override fun bindView(itemView: View) {
             episodeText = itemView.findViewById(R.id.episodeNumber)

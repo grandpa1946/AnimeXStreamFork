@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.motion.widget.MotionLayout
-
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.motion.widget.MotionLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/motionLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-
     app:layoutDescription="@xml/motion_scene_animeinfo">
 
 
@@ -53,40 +50,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/topView">
 
-        <androidx.cardview.widget.CardView
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/animeInfoImage"
+            style="@style/Widget.Material3.CardView.Filled"
+            android:layout_width="0dp"
+            android:layout_height="160dp"
+            android:scaleType="centerCrop"
             android:transitionName="@string/shared_anime_image"
-            android:id="@+id/animeCardView"
-            android:layout_width="128dp"
-            android:layout_height="210dp"
-            app:cardCornerRadius="4dp"
-            app:cardElevation="0dp"
+            app:layout_constraintDimensionRatio="H,4:3"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/animeInfoImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop" />
-
-        </androidx.cardview.widget.CardView>
-
-        <TextView
+        <com.google.android.material.textview.MaterialTextView
             android:id="@+id/animeInfoTitle"
+            style="@style/TextAppearance.Material3.TitleMedium"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/anime_info_item_start_margin"
             android:layout_marginBottom="10dp"
-            android:fontFamily="sans-serif-medium"
+            android:ellipsize="end"
             android:maxLines="2"
-            android:textColor="@color/info_anime_title"
-            android:textSize="22sp"
+            android:transitionName="@string/shared_anime_title"
             app:layout_constraintBottom_toTopOf="@+id/typeLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@id/animeCardView"
+            app:layout_constraintStart_toEndOf="@id/animeInfoImage"
             app:layout_constraintTop_toTopOf="parent"
-            android:transitionName="@string/shared_anime_title"
             tools:text="BAKUSOU KYOUDAI LET'S GO WGP" />
 
         <LinearLayout
@@ -100,7 +89,7 @@
             app:layout_constraintBottom_toTopOf="@+id/releasedLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@id/animeCardView"
+            app:layout_constraintStart_toEndOf="@id/animeInfoImage"
             app:layout_constraintTop_toBottomOf="@+id/animeInfoTitle">
 
             <TextView
@@ -130,7 +119,7 @@
             app:layout_constraintBottom_toTopOf="@+id/statusLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@id/animeCardView"
+            app:layout_constraintStart_toEndOf="@id/animeInfoImage"
             app:layout_constraintTop_toBottomOf="@+id/typeLayout">
 
             <TextView
@@ -153,15 +142,15 @@
         <LinearLayout
             android:id="@+id/statusLayout"
             android:layout_width="0dp"
-            android:visibility="gone"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/anime_info_item_start_margin"
             android:layout_marginBottom="@dimen/anime_info_item_spacing"
             android:orientation="horizontal"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@+id/flowLayout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@id/animeCardView"
+            app:layout_constraintStart_toEndOf="@id/animeInfoImage"
             app:layout_constraintTop_toBottomOf="@+id/releasedLayout">
 
             <TextView
@@ -187,11 +176,10 @@
             android:layout_marginTop="5dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toEndOf="@id/animeCardView"
+            app:layout_constraintStart_toEndOf="@id/animeInfoImage"
             app:layout_constraintTop_toBottomOf="@+id/statusLayout" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/animeInfoRecyclerView"
@@ -281,19 +269,18 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>
 
-    <androidx.core.widget.ContentLoadingProgressBar
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/loading"
+        style="@style/Widget.Material3.CircularProgressIndicator"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_gravity="center"
-        android:id="@+id/loading"
-        android:visibility="gone"
-        style="@android:style/Widget.Material.ProgressBar.Large"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
         android:indeterminate="true"
-        xmlns:android="http://schemas.android.com/apk/res/android" />
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
