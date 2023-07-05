@@ -32,7 +32,7 @@ import net.xblacky.animexstream.ui.main.search.epoxy.SearchController
 import net.xblacky.animexstream.utils.CommonViewModel2
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 
 
 class SearchFragment : Fragment(), SearchController.EpoxySearchAdapterCallbacks {
@@ -209,7 +209,7 @@ class SearchFragment : Fragment(), SearchController.EpoxySearchAdapterCallbacks 
         imm.showSoftInput(requireActivity().currentFocus, 0)
     }
 
-    override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
+    override fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View) {
         val extras = FragmentNavigatorExtras(
             sharedTitle to resources.getString(R.string.shared_anime_title),
             sharedImage to resources.getString(R.string.shared_anime_image)

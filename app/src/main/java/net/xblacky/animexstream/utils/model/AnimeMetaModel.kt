@@ -3,6 +3,7 @@ package net.xblacky.animexstream.utils.model
 import io.realm.RealmList
 import io.realm.RealmObject
 import io.realm.annotations.PrimaryKey
+import net.xblacky.animexstream.utils.constants.C
 
 public open class AnimeMetaModel(
     @PrimaryKey
@@ -17,4 +18,15 @@ public open class AnimeMetaModel(
     var timestamp: Long = System.currentTimeMillis(),
     var insertionOrder: Int = -1,
     var releasedDate: String? = null
-) : RealmObject()
+) : RealmObject() {
+    fun toDisplayModel() =
+        AnimeDisplayModel(
+            id = ID.toString(),
+            title = title,
+            subtitle = getSubTitle() ?: "",
+            imageUrl = imageUrl,
+            categoryUrl = categoryUrl
+        )
+
+    private fun getSubTitle() = if (typeValue == C.TYPE_MOVIE) releasedDate else episodeNumber
+}

@@ -5,19 +5,16 @@ import com.airbnb.epoxy.Carousel
 import com.airbnb.epoxy.Carousel.setDefaultGlobalSnapHelperFactory
 import com.airbnb.epoxy.CarouselModel_
 import com.airbnb.epoxy.TypedEpoxyController
-import net.xblacky.animexstream.utils.constants.C
 import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 import net.xblacky.animexstream.utils.model.HomeScreenModel
 
 
-class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
+class HomeController(private var adapterCallbacks: EpoxyAdapterCallbacks) :
     TypedEpoxyController<ArrayList<HomeScreenModel>>() {
 
 
     override fun buildModels(data: ArrayList<HomeScreenModel>) {
-
-
         data.forEach { homeScreenModel ->
 
             AnimeMiniHeaderModel_()
@@ -26,99 +23,35 @@ class HomeController(var adapterCallbacks: EpoxyAdapterCallbacks) :
                 .addIf(!homeScreenModel.animeList.isNullOrEmpty(), this)
 
 
+            val animeModelList: ArrayList<AnimeCommonModel_> = ArrayList()
+            homeScreenModel.animeList?.forEach {
+                val animeMetaModel = it
 
-            when (homeScreenModel.typeValue) {
-
-                C.TYPE_MOVIE, C.TYPE_NEW_SEASON -> {
-                    val movieModelList: ArrayList<AnimeCommonModel_> = ArrayList()
-                    homeScreenModel.animeList?.forEach {
-                        val animeMetaModel = it
-
-                        movieModelList.add(
-                            AnimeCommonModel_()
-                                .id(animeMetaModel.ID)
-                                .clickListener { model, holder, _, _ ->
-                                    adapterCallbacks.animeTitleClick(
-                                        model = model.animeMetaModel(),
-                                        sharedTitle = holder.animeTitle,
-                                        sharedImage = holder.animeImageView
-                                    )
-                                }
-                                .animeMetaModel(animeMetaModel)
-                        )
-                    }
-                    setDefaultGlobalSnapHelperFactory(null)
-
-                    CarouselModel_()
-                        .id(homeScreenModel.hashCode())
-                        .models(movieModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
-                        .addTo(this)
-
-                }
-
-                C.TYPE_POPULAR_ANIME -> {
-                    homeScreenModel.animeList?.forEach {
-                        val animeMetaModel = it
-
-                        AnimePopularModel_()
-                            .id(animeMetaModel.ID)
-                            .clickListener { model, holder, _, _ ->
-                                adapterCallbacks.animeTitleClick(
-                                    model = model.animeMetaModel(),
-                                    sharedTitle = holder.animeTitle,
-                                    sharedImage = holder.animeImageView
-                                )
-                            }
-                            .animeMetaModel(animeMetaModel)
-                            .addTo(this)
-                    }
-
-                }
-
-                else -> {
-                    val recentModelList: ArrayList<AnimeSubDubModel2_> = ArrayList()
-                    homeScreenModel.animeList?.forEach {
-                        val animeMetaModel = it
-                        recentModelList.add(
-                            AnimeSubDubModel2_()
-                                .id(animeMetaModel.ID)
-                                .clickListener { model, holder, _, _ ->
-                                    recentSubDubClick(
-                                        model = model.animeMetaModel(),
-                                        sharedTitle = holder.animeTitle,
-                                        sharedImage = holder.animeImageView
-                                    )
-                                }
-                                .animeMetaModel(animeMetaModel)
-                        )
-                    }
-                    CarouselModel_()
-                        .id(homeScreenModel.hashCode())
-                        .models(recentModelList)
-                        .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
-                        .addTo(this)
-                }
+                animeModelList.add(
+                    AnimeCommonModel_()
+                        .id(animeMetaModel.ID)
+                        .clickListener { model, holder, _, _ ->
+                            adapterCallbacks.animeTitleClick(
+                                model = model.animeDisplayModel(),
+                                sharedTitle = holder.animeTitle,
+                                sharedImage = holder.animeImageView
+                            )
+                        }
+                        .animeDisplayModel(animeMetaModel.toDisplayModel())
+                )
             }
+            setDefaultGlobalSnapHelperFactory(null)
 
+            CarouselModel_()
+                .id(homeScreenModel.hashCode())
+                .models(animeModelList)
+                .padding(Carousel.Padding.dp(20, 0, 20, 0, 20))
+                .addTo(this)
         }
 
     }
 
-    private fun recentSubDubClick(
-        model: AnimeMetaModel,
-        sharedTitle: View,
-        sharedImage: View
-    ) {
-        adapterCallbacks.animeTitleClick(
-            model = model,
-            sharedTitle = sharedTitle,
-            sharedImage = sharedImage
-        )
-
-    }
-
     interface EpoxyAdapterCallbacks {
-        fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View)
+        fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View)
     }
 }

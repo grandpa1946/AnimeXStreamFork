@@ -22,7 +22,7 @@ import net.xblacky.animexstream.databinding.FragmentHomeBinding
 import net.xblacky.animexstream.ui.main.home.epoxy.HomeController
 import net.xblacky.animexstream.utils.EventObserver
 import net.xblacky.animexstream.utils.constants.C
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 import timber.log.Timber
 
 @AndroidEntryPoint
@@ -174,7 +174,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
         }
     }
 
-    override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
+    override fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View) {
         if (!model.categoryUrl.isNullOrBlank()) {
 
             val extras = FragmentNavigatorExtras(
@@ -183,7 +183,7 @@ class HomeFragment : Fragment(), View.OnClickListener, HomeController.EpoxyAdapt
             )
             findNavController().navigate(
                 HomeFragmentDirections.actionHomeFragmentToAnimeInfoFragment(
-                    categoryUrl = model.categoryUrl!!,
+                    categoryUrl = model.categoryUrl,
                     animeImageUrl = model.imageUrl,
                     animeName = model.title
                 ),

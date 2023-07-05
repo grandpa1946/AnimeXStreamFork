@@ -2,6 +2,8 @@ package net.xblacky.animexstream.ui.main.favourites.epoxy
 
 import android.view.View
 import com.airbnb.epoxy.TypedEpoxyController
+import net.xblacky.animexstream.utils.epoxy.AnimeCommonModel_
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 import net.xblacky.animexstream.utils.model.FavouriteModel
 
 class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallbacks) :
@@ -10,13 +12,13 @@ class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallba
         data?.let { arrayList ->
             arrayList.forEach {
 
-                FavouriteModel_()
+                AnimeCommonModel_()
                     .id(it.animeName)
-                    .favouriteModel(it)
+                    .animeDisplayModel(it.toDisplayModel())
                     .spanSizeOverride { totalSpanCount, _, _ -> totalSpanCount / totalSpanCount }
                     .clickListener { model, holder, _, _ ->
                         adapterCallbacks.animeTitleClick(
-                            model = model.favouriteModel(),
+                            model = model.animeDisplayModel(),
                             sharedTitle = holder.animeTitle,
                             sharedImage = holder.animeImageView
                         )
@@ -27,7 +29,10 @@ class FavouriteController(private var adapterCallbacks: EpoxySearchAdapterCallba
     }
 
     interface EpoxySearchAdapterCallbacks {
-        fun animeTitleClick(model: FavouriteModel, sharedTitle: View, sharedImage: View)
+        fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View)
     }
 
 }
+
+private fun FavouriteModel.toDisplayModel() =
+    AnimeDisplayModel(ID, animeName ?: "", releasedDate ?: "", imageUrl ?: "", categoryUrl)

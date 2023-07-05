@@ -20,7 +20,7 @@ import net.xblacky.animexstream.databinding.FragmentFavouriteBinding
 import net.xblacky.animexstream.ui.main.favourites.epoxy.FavouriteController
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.model.FavouriteModel
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 
 class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCallbacks,
     View.OnClickListener {
@@ -163,7 +163,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     }
 
 
-    override fun animeTitleClick(model: FavouriteModel, sharedTitle: View, sharedImage: View) {
+    override fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View) {
         val extras = FragmentNavigatorExtras(
             sharedTitle to resources.getString(R.string.shared_anime_title),
             sharedImage to resources.getString(R.string.shared_anime_image)
@@ -171,7 +171,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         findNavController().navigate(
             FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
                 categoryUrl = model.categoryUrl!!,
-                animeName = model.animeName!!,
+                animeName = model.title!!,
                 animeImageUrl = model.imageUrl!!
             ), extras
         )
