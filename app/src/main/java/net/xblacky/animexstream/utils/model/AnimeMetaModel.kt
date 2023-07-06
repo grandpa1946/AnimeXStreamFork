@@ -28,5 +28,5 @@ public open class AnimeMetaModel(
             categoryUrl = categoryUrl
         )
 
-    private fun getSubTitle() = if (typeValue == C.TYPE_MOVIE) releasedDate else episodeNumber
+    private fun getSubTitle() = if (typeValue == C.TYPE_MOVIE || typeValue == C.TYPE_NEW_SEASON) releasedDate else episodeNumber
 }

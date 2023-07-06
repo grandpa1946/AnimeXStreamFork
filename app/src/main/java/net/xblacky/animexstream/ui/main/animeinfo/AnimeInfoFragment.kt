@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -21,10 +20,9 @@ import net.xblacky.animexstream.databinding.FragmentAnimeinfoBinding
 import net.xblacky.animexstream.ui.main.animeinfo.di.AnimeInfoFactory
 import net.xblacky.animexstream.ui.main.animeinfo.epoxy.AnimeInfoController
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
-import net.xblacky.animexstream.utils.tags.GenreTags
-import net.xblacky.animexstream.utils.Utils
 import net.xblacky.animexstream.utils.model.AnimeInfoModel
 import net.xblacky.animexstream.utils.model.EpisodeModel
+import net.xblacky.animexstream.utils.tags.GenreTags
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -70,7 +68,6 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
         setPreviews()
         setupRecyclerView()
         setObserver()
-        transitionListener()
         setOnClickListeners()
     }
 
@@ -101,24 +98,18 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
             binding.loading.isVisible = it.isLoading
         }
 
-
-
         viewModel.isFavourite.observe(viewLifecycleOwner) {
             if (it) {
-                binding.favourite.setImageDrawable(
-                    ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.ic_favorite,
-                        null
-                    )
+                binding.favourite.icon = ResourcesCompat.getDrawable(
+                    resources,
+                    R.drawable.ic_favorite,
+                    null
                 )
             } else {
-                binding.favourite.setImageDrawable(
-                    ResourcesCompat.getDrawable(
-                        resources,
-                        R.drawable.ic_unfavorite,
-                        null
-                    )
+                binding.favourite.icon = ResourcesCompat.getDrawable(
+                    resources,
+                    R.drawable.ic_unfavorite,
+                    null
                 )
             }
         }
@@ -136,7 +127,6 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
         binding.animeInfoStatus.text = animeInfoModel.status
         binding.animeInfoType.text = animeInfoModel.type
         binding.animeInfoTitle.text = animeInfoModel.animeTitle
-        binding.toolbarText.text = animeInfoModel.animeTitle
         binding.flowLayout.removeAllViews()
         animeInfoModel.genre.forEach {
             binding.flowLayout.addView(
@@ -148,9 +138,8 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
             )
         }
 
-
         episodeController.setAnime(animeInfoModel.animeTitle)
-        binding.animeInfoSummary.text = animeInfoModel.plotSummary
+        binding.txtSynopsis.text = animeInfoModel.plotSummary
         binding.favourite.visibility = View.VISIBLE
         binding.typeLayout.visibility = View.VISIBLE
         binding.releasedLayout.visibility = View.VISIBLE
@@ -159,54 +148,16 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
     }
 
     private fun setupRecyclerView() {
-        episodeController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
+        episodeController.spanCount = 5
         binding.animeInfoRecyclerView.adapter = episodeController.adapter
         val itemOffsetDecoration = ItemOffsetDecoration(context, R.dimen.episode_offset_left)
         binding.animeInfoRecyclerView.addItemDecoration(itemOffsetDecoration)
         binding.animeInfoRecyclerView.apply {
             layoutManager =
-                GridLayoutManager(context, Utils.calculateNoOfColumns(requireContext(), 150f))
+                GridLayoutManager(context, 5)
             (layoutManager as GridLayoutManager).spanSizeLookup = episodeController.spanSizeLookup
 
         }
-    }
-
-    private fun transitionListener() {
-        binding.motionLayout.setTransitionListener(
-            object : MotionLayout.TransitionListener {
-                override fun onTransitionTrigger(
-                    p0: MotionLayout?,
-                    p1: Int,
-                    p2: Boolean,
-                    p3: Float
-                ) {
-
-                }
-
-                override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
-                    binding.topView.cardElevation = 0F
-                }
-
-                override fun onTransitionChange(
-                    p0: MotionLayout?,
-                    startId: Int,
-                    endId: Int,
-                    progress: Float
-                ) {
-                    if (startId == R.id.start) {
-                        binding.topView.cardElevation = 20F * progress
-                        binding.toolbarText.alpha = progress
-                    } else {
-                        binding.topView.cardElevation = 10F * (1 - progress)
-                        binding.toolbarText.alpha = (1 - progress)
-                    }
-                }
-
-                override fun onTransitionCompleted(p0: MotionLayout?, p1: Int) {
-                }
-
-            }
-        )
     }
 
     private fun setOnClickListeners() {
@@ -214,7 +165,7 @@ class AnimeInfoFragment : Fragment(), AnimeInfoController.EpisodeClickListener {
             onFavouriteClick()
         }
 
-        binding.back.setOnClickListener {
+        binding.btnBack.setOnClickListener {
             findNavController().navigateUp()
         }
     }
