@@ -1,9 +1,18 @@
 package net.xblacky.animexstream.utils.parser
 
+import android.net.Uri
+import net.xblacky.animexstream.utils.extractors.FPlayer
+import net.xblacky.animexstream.utils.extractors.Mp4Upload
+import net.xblacky.animexstream.utils.extractors.StreamSB
 import com.google.gson.Gson
 import io.realm.RealmList
 import net.xblacky.animexstream.ui.main.home.source.InvalidAnimeTypeException
 import net.xblacky.animexstream.utils.constants.C
+import net.xblacky.animexstream.utils.extractors.DoodStream
+import net.xblacky.animexstream.utils.extractors.FileUrl
+import net.xblacky.animexstream.utils.extractors.GogoCDN
+import net.xblacky.animexstream.utils.extractors.VideoExtractor
+import net.xblacky.animexstream.utils.extractors.VideoServer
 import net.xblacky.animexstream.utils.model.*
 import net.xblacky.animexstream.utils.parser.DeCipher.decryptAES
 import net.xblacky.animexstream.utils.parser.DeCipher.encryptAes
@@ -245,6 +254,36 @@ class HtmlParser {
             return Gson().fromJson(decryptedData, M3U8FromAjaxModel::class.java)
         }
 
+        fun parseVideoServers(response: String): List<VideoServer> {
+            val list = mutableListOf<VideoServer>()
+            Jsoup.parse(response).select("div.anime_muti_link > ul > li").forEach {
+                val name = it.select("a").text().replace("Choose this server", "")
+                val url = httpsIfy(it.select("a").attr("data-video"))
+                val embed = FileUrl(url, mapOf("referer" to C.REFERER))
+
+                list.add(VideoServer(name, embed))
+            }
+            return list
+        }
+
+        private fun httpsIfy(text: String): String {
+            return if (text.take(2) == "//") "https:$text"
+            else text
+        }
+
+        fun getVideoExtractor(server: VideoServer): VideoExtractor? {
+            val domain = Uri.parse(server.embed.url).host ?: return null
+            println("domain: $domain")
+            val extractor: VideoExtractor? = when {
+                "taku" in domain      -> GogoCDN(server)
+                "sb" in domain        -> StreamSB(server)
+                "fplayer" in domain   -> FPlayer(server)
+                "dood" in domain      -> DoodStream(server)
+                "mp4" in domain       -> Mp4Upload(server)
+                else                  -> null
+            }
+            return extractor
+        }
 
 /*
         fun parseEncryptAjaxParameters(response: String): String {

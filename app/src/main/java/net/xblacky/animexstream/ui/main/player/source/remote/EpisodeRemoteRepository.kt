@@ -2,13 +2,13 @@ package net.xblacky.animexstream.ui.main.player.source.remote
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
-import net.xblacky.animexstream.utils.Result
 import net.xblacky.animexstream.utils.Utils
+import net.xblacky.animexstream.utils.asyncMap
 import net.xblacky.animexstream.utils.di.DispatcherModule
 import net.xblacky.animexstream.utils.model.EpisodeInfo
-import net.xblacky.animexstream.utils.model.M3U8FromAjaxModel
 import net.xblacky.animexstream.utils.parser.HtmlParser
 import net.xblacky.animexstream.utils.rertofit.NetworkInterface
+import net.xblacky.animexstream.utils.tryWithSuspend
 import okhttp3.ResponseBody
 import javax.inject.Inject
 
@@ -20,8 +20,17 @@ class EpisodeRemoteRepository @Inject constructor(
 
     suspend fun fetchEpisodeData(url: String): EpisodeInfo {
         return withContext(dispatcher) {
-            val response = service.fetchEpisodeMediaUrl(Utils.getHeader(), url)
-            HtmlParser.parseMediaUrl(response = response.string())
+            val response = service.fetchEpisodeMediaUrl(Utils.getHeader(), url).string()
+            val episodeInfo = HtmlParser.parseMediaUrl(response = response)
+            val extractors = HtmlParser.parseVideoServers(response = response).asyncMap {
+                HtmlParser.getVideoExtractor(it)?.apply {
+                    tryWithSuspend {
+                        load(response)
+                    }
+                }
+            }
+            episodeInfo.videoExtractors = extractors
+            return@withContext episodeInfo
         }
     }
 

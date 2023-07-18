@@ -2,8 +2,13 @@ package net.xblacky.animexstream.utils
 
 import android.content.Context
 import android.util.DisplayMetrics
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import net.xblacky.animexstream.utils.constants.C
+import net.xblacky.animexstream.utils.extractors.FileUrl
 import net.xblacky.animexstream.utils.preference.PreferenceHelper
+import timber.log.Timber
+import kotlin.coroutines.cancellation.CancellationException
 
 
 class Utils {
@@ -71,5 +76,32 @@ class Utils {
             }
         }
 
+    }
+}
+
+fun <A, B> Collection<A>.asyncMap(f: suspend (A) -> B): List<B> = runBlocking {
+    map { async { f(it) } }.map { it.await() }
+}
+
+suspend fun <T> tryWithSuspend(call: suspend () -> T): T? {
+    return try {
+        call.invoke()
+    } catch (e: Throwable) {
+        Timber.e(e)
+        null
+    } catch (e: CancellationException) {
+        null
+    }
+}
+
+fun String.findBetween(a: String, b: String): String? {
+    val start = this.indexOf(a)
+    val end = if (start != -1) this.indexOf(b, start) else return null
+    return if (end != -1) this.subSequence(start, end).removePrefix(a).removeSuffix(b).toString() else null
+}
+
+suspend fun getSize(file: FileUrl): Double? {
+    return tryWithSuspend {
+        client.head(file.url, file.headers, timeout = 1000).size?.toDouble()?.div(1024 * 1024)
     }
 }
