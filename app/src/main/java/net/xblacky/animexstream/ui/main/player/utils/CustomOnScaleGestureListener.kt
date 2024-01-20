@@ -1,15 +1,10 @@
 package net.xblacky.animexstream.ui.main.player.utils
 
 import android.view.ScaleGestureDetector
-import android.view.animation.Animation
-import androidx.core.view.size
-import com.google.android.exoplayer2.ui.AspectRatioFrameLayout
-import com.google.android.exoplayer2.ui.PlayerView
-import com.google.android.material.animation.AnimationUtils
-import net.xblacky.animexstream.R
+import androidx.media3.ui.AspectRatioFrameLayout
+import androidx.media3.ui.PlayerView
 import net.xblacky.animexstream.utils.animation.CustomAnimation
 import net.xblacky.animexstream.utils.touchevents.TouchUtils
-import timber.log.Timber
 
 class CustomOnScaleGestureListener(
     private val player: PlayerView

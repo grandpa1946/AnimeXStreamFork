@@ -1,32 +1,24 @@
 package net.xblacky.animexstream.ui.main.player
 
-import android.app.AppOpsManager
-import android.app.PictureInPictureParams
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.view.View
-import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.activity_video_player.*
-import kotlinx.android.synthetic.main.fragment_video_player.*
-import net.xblacky.animexstream.R
-import net.xblacky.animexstream.utils.model.Content
-import timber.log.Timber
-import java.lang.Exception
-import android.view.WindowInsetsController
-
 import android.view.WindowInsets
+import android.view.WindowInsetsController
+import android.view.WindowManager
 import androidx.activity.viewModels
-import androidx.lifecycle.Observer
+import androidx.appcompat.app.AppCompatActivity
+import androidx.media3.common.util.UnstableApi
+import dagger.hilt.android.AndroidEntryPoint
+import net.xblacky.animexstream.R
+import net.xblacky.animexstream.databinding.ActivityVideoPlayerBinding
+import net.xblacky.animexstream.utils.model.Content
 import net.xblacky.animexstream.utils.preference.Preference
+import timber.log.Timber
 import javax.inject.Inject
 
-
+@UnstableApi
 @AndroidEntryPoint
 class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
 
@@ -37,35 +29,40 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
     private var episodeNumber: String? = ""
     private var animeName: String? = ""
     private lateinit var content: Content
+
+    private lateinit var binding: ActivityVideoPlayerBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_video_player)
+        binding = ActivityVideoPlayerBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
+        addVideoPlayerFragment()
         getExtra(intent)
         setObserver()
         goFullScreen()
     }
 
+    private fun addVideoPlayerFragment() {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.add(
+            binding.playerActivityContainer.id,
+            VideoPlayerFragment::class.java,
+            null,
+            VideoPlayerFragment.TAG
+        )
+        transaction.commit()
+    }
+
 
     override fun onNewIntent(intent: Intent?) {
-        (playerFragment as VideoPlayerFragment).playOrPausePlayer(
+        getPlayerFragment()?.playOrPausePlayer(
             playWhenReady = false,
             loseAudioFocus = false
         )
-        (playerFragment as VideoPlayerFragment).saveWatchedDuration()
+        getPlayerFragment()?.saveWatchedDuration()
         getExtra(intent)
         super.onNewIntent(intent)
-
-    }
-
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        enterPipMode()
-    }
-
-
-    override fun onResume() {
-        super.onResume()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -90,132 +87,35 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData()
     }
 
-    @Suppress("DEPRECATION")
-    private fun enterPipMode() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-            && packageManager
-                .hasSystemFeature(
-                    PackageManager.FEATURE_PICTURE_IN_PICTURE
-                )
-            && hasPipPermission()
-            && (playerFragment as VideoPlayerFragment).isVideoPlaying()
-        ) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val params = PictureInPictureParams.Builder()
-                this.enterPictureInPictureMode(params.build())
-            } else {
-                this.enterPictureInPictureMode()
-            }
-        }
-    }
-
-    override fun onStop() {
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-            && hasPipPermission()
-        ) {
-            finishAndRemoveTask()
-        }
-        super.onStop()
-    }
-
     override fun finish() {
-        if ((Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-            && packageManager.hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
-        ) {
-            finishAndRemoveTask()
-        }
         super.finish()
-
         overridePendingTransition(android.R.anim.fade_in, R.anim.slide_in_down)
     }
 
-    fun enterPipModeOrExit() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N
-            && packageManager
-                .hasSystemFeature(
-                    PackageManager.FEATURE_PICTURE_IN_PICTURE
-                )
-            && (playerFragment as VideoPlayerFragment).isVideoPlaying()
-            && hasPipPermission()
-        ) {
-            try {
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    val params = PictureInPictureParams.Builder()
-                    this.enterPictureInPictureMode(params.build())
-                } else {
-                    this.enterPictureInPictureMode()
-                }
-            } catch (ex: Exception) {
-                Timber.e(ex)
-            }
-
-        } else {
-            finish()
-
-        }
-    }
-
-    override fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration?
-    ) {
-        exoPlayerView.useController = !isInPictureInPictureMode
-    }
-
-    private fun hasPipPermission(): Boolean {
-        val appsOps = getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-        return when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q -> {
-                appsOps.unsafeCheckOpNoThrow(
-                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    android.os.Process.myUid(),
-                    packageName
-                ) == AppOpsManager.MODE_ALLOWED
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.O -> {
-                appsOps.checkOpNoThrow(
-                    AppOpsManager.OPSTR_PICTURE_IN_PICTURE,
-                    android.os.Process.myUid(),
-                    packageName
-                ) == AppOpsManager.MODE_ALLOWED
-            }
-            else -> {
-                false
-            }
-        }
-    }
-
     private fun setObserver() {
-
-        viewModel.content.observe(this, Observer {
+        viewModel.content.observe(this) {
             this.content = it
             it?.let {
-                if (!it.urls.isNullOrEmpty()) {
-                    (playerFragment as VideoPlayerFragment).updateContent(it)
+                if (it.urls.isNotEmpty()) {
+                    getPlayerFragment()?.updateContent(it)
                 }
             }
-        })
-        viewModel.isLoading.observe(this, Observer {
-            (playerFragment as VideoPlayerFragment).showLoading(it.isLoading)
-        })
-        viewModel.errorModel.observe(this, Observer {
-            (playerFragment as VideoPlayerFragment).showErrorLayout(
+        }
+        viewModel.isLoading.observe(this) {
+            getPlayerFragment()?.showLoading(it.isLoading)
+        }
+        viewModel.errorModel.observe(this) {
+            getPlayerFragment()?.showErrorLayout(
                 it.show,
                 it.errorMsgId,
                 it.errorCode
             )
-        })
+        }
 
         viewModel.cdnServer.observe(this) {
             Timber.e("Referrer : $it")
             preference.setReferrer(it)
         }
-    }
-
-    override fun onBackPressed() {
-        enterPipModeOrExit()
     }
 
     private fun goFullScreen() {
@@ -244,7 +144,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.nextEpisodeUrl,
-                episodeName = "\"EP ${incrimentEpisodeNumber(content.episodeName!!)}\"",
+                episodeName = "\"EP ${incrementEpisodeNumber(content.episodeName!!)}\"",
                 urls = ArrayList(),
                 animeName = content.animeName
             )
@@ -258,7 +158,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.updateEpisodeContent(
             Content(
                 episodeUrl = content.previousEpisodeUrl,
-                episodeName = "\"EP ${decrimentEpisodeNumber(content.episodeName!!)}\"",
+                episodeName = "\"EP ${decrementEpisodeNumber(content.episodeName!!)}\"",
                 urls = ArrayList(),
                 animeName = content.animeName
             )
@@ -266,7 +166,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData()
     }
 
-    private fun incrimentEpisodeNumber(episodeName: String): String {
+    private fun incrementEpisodeNumber(episodeName: String): String {
         return try {
             Timber.e("Episode Name $episodeName")
             val episodeString = episodeName.substring(
@@ -282,7 +182,7 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         }
     }
 
-    private fun decrimentEpisodeNumber(episodeName: String): String {
+    private fun decrementEpisodeNumber(episodeName: String): String {
         return try {
             val episodeString = episodeName.substring(
                 episodeName.lastIndexOf(' ') + 1,
@@ -302,4 +202,6 @@ class VideoPlayerActivity : AppCompatActivity(), VideoPlayerListener {
         viewModel.fetchEpisodeData(forceRefresh = true)
     }
 
+    private fun getPlayerFragment() =
+        supportFragmentManager.findFragmentByTag(VideoPlayerFragment.TAG) as? VideoPlayerFragment
 }

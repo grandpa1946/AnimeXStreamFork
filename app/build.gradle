@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 apply plugin: 'dagger.hilt.android.plugin'
 kapt {
@@ -24,19 +23,18 @@ android {
         }
     }
 
-    compileSdkVersion 32
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
-        useIR = true
+        jvmTarget = JavaVersion.VERSION_11.toString()
     }
     defaultConfig {
         applicationId "net.xblacky.animexstream"
         minSdkVersion 21
-        targetSdkVersion 32
+        compileSdk 33
+        targetSdkVersion 33
         versionCode 17
         versionName "0.5.0"
         vectorDrawables.useSupportLibrary = true
@@ -49,36 +47,23 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    splits {
 
-        // Configures multiple APKs based on ABI.
-        abi {
-
-            // Enables building multiple APKs per ABI.
-            enable true
-            // By default all ABIs are included, so use reset() and include to specify that we only
-            // want APKs for x86 and x86_64.
-            // Resets the list of ABIs that Gradle should create APKs for to none.
-            reset()
-            // Specifies a list of ABIs that Gradle should create APKs for.
-            include "x86", "armeabi-v7a", "arm64-v8a", "x86_64"
-            // Specifies that we do not want to also generate a universal APK that includes all ABIs.
-            universalApk true
-        }
+    buildFeatures {
+        viewBinding true
     }
+    namespace 'net.xblacky.animexstream'
 
 
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.4.1'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.core:core-ktx:1.7.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.3'
     implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
     implementation 'androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0'
-    implementation("com.google.android.material:material:1.5.0")
+    implementation 'com.google.android.material:material:1.9.0'
 
 
     //Card View
@@ -117,9 +102,11 @@ dependencies {
     implementation 'org.apmem.tools:layouts:1.10@aar'
 
     //Exo Player
-    implementation 'com.google.android.exoplayer:exoplayer:2.16.1'
-    implementation 'com.google.android.exoplayer:extension-mediasession:2.16.1'
-    implementation 'com.google.android.exoplayer:extension-okhttp:2.16.1'
+    implementation 'androidx.media3:media3-exoplayer:1.0.2'
+    implementation "androidx.media3:media3-ui:1.0.2"
+    implementation "androidx.media3:media3-session:1.0.2"
+    implementation "androidx.media3:media3-exoplayer-hls:1.0.2"
+    implementation 'androidx.media3:media3-datasource-okhttp:1.0.2'
 
     //Expandable TextView
     implementation 'com.ms-square:expandableTextView:0.1.4'
@@ -129,7 +116,6 @@ dependencies {
 
 
     //Navigation Library
-    def nav_version = "2.3.5"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
@@ -141,8 +127,9 @@ dependencies {
     implementation 'com.google.firebase:firebase-config:21.0.1'
 
     //Dependency Injections
-    implementation("com.google.dagger:hilt-android:2.38.1")
-    kapt("com.google.dagger:hilt-android-compiler:2.38.1")
+    implementation "com.google.dagger:hilt-android:2.44"
+    kapt "com.google.dagger:hilt-android-compiler:2.44"
+    implementation 'androidx.hilt:hilt-navigation-fragment:1.0.0'
 
     //Apache Commons
     implementation 'org.apache.commons:commons-lang3:3.11'
@@ -152,7 +139,7 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
     testImplementation "com.google.truth:truth:1.1.3"
     testImplementation "com.squareup.okhttp3:mockwebserver:4.9.1"
-    testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.5.1'
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$kotlin_version"
     testImplementation "androidx.arch.core:core-testing:2.1.0"
 
 

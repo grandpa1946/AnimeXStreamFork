@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">@color/header</color>
     <color name="colorPrimaryDark">#3B3B44</color>
-    <color name="colorAccent">@color/header</color>
+    <color name="colorAccent">#ffffff</color>
 
     //Total Colors
     <color name="app_background">#0c0c0c</color>

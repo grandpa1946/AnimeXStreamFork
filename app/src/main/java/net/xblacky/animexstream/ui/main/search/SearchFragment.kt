@@ -8,7 +8,6 @@ import android.net.NetworkInfo
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +16,6 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.TextView.OnEditorActionListener
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -27,33 +25,36 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.transition.MaterialContainerTransform
-import com.google.android.material.transition.MaterialElevationScale
 import com.google.android.material.transition.MaterialFadeThrough
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_search.view.*
-import kotlinx.android.synthetic.main.loading.view.*
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.databinding.FragmentSearchBinding
 import net.xblacky.animexstream.ui.main.search.epoxy.SearchController
 import net.xblacky.animexstream.utils.CommonViewModel2
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.model.AnimeMetaModel
-import timber.log.Timber
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 
 
-class SearchFragment : Fragment(), View.OnClickListener,
-    SearchController.EpoxySearchAdapterCallbacks {
+class SearchFragment : Fragment(), SearchController.EpoxySearchAdapterCallbacks {
 
-    private lateinit var rootView: View
     private lateinit var viewModel: SearchViewModel
     private lateinit var searchController: SearchController
+
+    private var _binding: FragmentSearchBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        rootView = inflater.inflate(R.layout.fragment_search, container, false)
-        return rootView
+        _binding = FragmentSearchBinding.inflate(inflater, container, false)
+        return binding.root
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -62,7 +63,6 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
         setupTransitions(view)
         setObserver()
-        setOnClickListeners()
         setAdapters()
         setRecyclerViewScroll()
         setEditTextListener()
@@ -70,16 +70,16 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
 
     private fun setEditTextListener() {
-        rootView.searchEditText.setOnEditorActionListener(OnEditorActionListener { v, actionId, _ ->
+        binding.searchEditText.setOnEditorActionListener(OnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
                 hideKeyBoard()
-                rootView.searchEditText.clearFocus()
+                binding.searchEditText.clearFocus()
                 viewModel.fetchSearchList(v.text.toString().trim())
                 return@OnEditorActionListener true
             }
             false
         })
-        rootView.searchEditText.addTextChangedListener(object : TextWatcher {
+        binding.searchEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {
             }
 
@@ -94,21 +94,16 @@ class SearchFragment : Fragment(), View.OnClickListener,
         })
     }
 
-
-    private fun setOnClickListeners() {
-        rootView.backButton.setOnClickListener(this)
-    }
-
     private fun setAdapters() {
         searchController = SearchController(this)
         searchController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
-        rootView.searchRecyclerView.apply {
+        binding.searchRecyclerView.apply {
             layoutManager =
                 GridLayoutManager(context, Utils.calculateNoOfColumns(requireContext(), 150f))
             adapter = searchController.adapter
             (layoutManager as GridLayoutManager).spanSizeLookup = searchController.spanSizeLookup
         }
-        rootView.searchRecyclerView.addItemDecoration(
+        binding.searchRecyclerView.addItemDecoration(
             ItemOffsetDecoration(
                 context,
                 R.dimen.episode_offset_left
@@ -131,28 +126,25 @@ class SearchFragment : Fragment(), View.OnClickListener,
 
         viewModel.loadingModel.observe(viewLifecycleOwner, Observer {
             if (it.isListEmpty) {
-                if (it.loading == CommonViewModel2.Loading.LOADING) rootView.loading.visibility =
-                    View.VISIBLE
-                //TODO Error Visibiity GONE
-
-                else if (it.loading == CommonViewModel2.Loading.ERROR
+                if (it.loading == CommonViewModel2.Loading.LOADING) {
+                    binding.loading.visibility = View.VISIBLE
+                    //TODO Error Visibiity GONE
+                } else if (it.loading == CommonViewModel2.Loading.ERROR
                 //Todo Error visisblity visible
-                ) rootView.loading.visibility = View.GONE
+                ) {
+                    binding.loading.visibility = View.GONE
+                }
             } else {
                 searchController.setData(
                     viewModel.searchList.value,
                     it.loading == CommonViewModel2.Loading.LOADING
                 )
-                if (it.loading == CommonViewModel2.Loading.ERROR) view?.let { it1 ->
-                    Snackbar.make(
-                        it1,
-                        getString(it.errorMsg),
-                        Snackbar.LENGTH_SHORT
-                    ).show()
+                if (it.loading == CommonViewModel2.Loading.ERROR) {
+                    Snackbar.make(binding.root, getString(it.errorMsg), Snackbar.LENGTH_SHORT)
+                        .show()
+                } else if (it.loading == CommonViewModel2.Loading.COMPLETED) {
+                    binding.loading.visibility = View.GONE
                 }
-                else if (it.loading == CommonViewModel2.Loading.COMPLETED) rootView.loading.visibility =
-                    View.GONE
-
             }
 
         })
@@ -179,21 +171,11 @@ class SearchFragment : Fragment(), View.OnClickListener,
 //        })
     }
 
-    override fun onClick(v: View?) {
-        when (v?.id) {
-            R.id.backButton -> {
-                hideKeyBoard()
-                findNavController().popBackStack()
-
-            }
-        }
-    }
-
     private fun setRecyclerViewScroll() {
-        rootView.searchRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+        binding.searchRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
-                val layoutManger = rootView.searchRecyclerView.layoutManager as GridLayoutManager
+                val layoutManger = binding.searchRecyclerView.layoutManager as GridLayoutManager
                 val visibleItemCount = layoutManger.childCount
                 val totalItemCount = layoutManger.itemCount
                 val firstVisibleItemPosition = layoutManger.findFirstVisibleItemPosition()
@@ -227,7 +209,7 @@ class SearchFragment : Fragment(), View.OnClickListener,
         imm.showSoftInput(requireActivity().currentFocus, 0)
     }
 
-    override fun animeTitleClick(model: AnimeMetaModel, sharedTitle: View, sharedImage: View) {
+    override fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View) {
         val extras = FragmentNavigatorExtras(
             sharedTitle to resources.getString(R.string.shared_anime_title),
             sharedImage to resources.getString(R.string.shared_anime_image)

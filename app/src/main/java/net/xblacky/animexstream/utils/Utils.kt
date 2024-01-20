@@ -22,6 +22,12 @@ class Utils {
 
         }
 
+        fun getWatchedDuration(watchedDuration: Long): String {
+            val s: Long = watchedDuration / 1000 % 60
+            val m: Long = watchedDuration / 1000 / 60
+            return String.format("%02d:%02d", m, s)
+        }
+
         fun getTypeName(typeValue: Int): String {
 
             return when (typeValue) {

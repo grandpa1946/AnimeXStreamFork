@@ -26,18 +26,6 @@
             android:id="@+id/searchLayout"
             android:orientation="horizontal">
 
-            <ImageView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:src="@drawable/ic_arrow"
-                android:id="@+id/backButton"
-                android:scaleX="1"
-                android:scaleY="1"
-                android:padding="10dp"
-                android:background="?selectableItemBackgroundBorderless"
-                android:contentDescription="@string/back_button"
-                app:tint="@color/search_back" />
-
             <EditText
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -73,9 +61,19 @@
         android:paddingBottom="20dp"
         android:clipToPadding="false"
         />
-    <include
-        layout="@layout/loading"
-        />
+
+    <androidx.core.widget.ContentLoadingProgressBar
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:id="@+id/loading"
+        android:visibility="gone"
+        style="@android:style/Widget.Material.ProgressBar.Large"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:indeterminate="true" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

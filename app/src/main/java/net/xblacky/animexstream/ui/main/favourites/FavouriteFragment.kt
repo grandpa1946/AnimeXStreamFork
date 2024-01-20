@@ -3,7 +3,6 @@ package net.xblacky.animexstream.ui.main.favourites
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
-import android.transition.Fade
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,23 +10,17 @@ import androidx.constraintlayout.motion.widget.MotionLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.doOnPreDraw
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.FragmentNavigatorExtras
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.transition.MaterialContainerTransform
-import com.google.android.material.transition.MaterialFadeThrough
-import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.android.synthetic.main.fragment_favourite.view.*
-import kotlinx.android.synthetic.main.fragment_favourite.view.toolbarText
-import kotlinx.android.synthetic.main.fragment_favourite.view.topView
-import kotlinx.android.synthetic.main.fragment_search.view.*
 import net.xblacky.animexstream.R
+import net.xblacky.animexstream.databinding.FragmentFavouriteBinding
 import net.xblacky.animexstream.ui.main.favourites.epoxy.FavouriteController
 import net.xblacky.animexstream.utils.ItemOffsetDecoration
 import net.xblacky.animexstream.utils.Utils
-import net.xblacky.animexstream.utils.model.FavouriteModel
+import net.xblacky.animexstream.utils.model.AnimeDisplayModel
 
 class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCallbacks,
     View.OnClickListener {
@@ -37,14 +30,21 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         FavouriteController(this)
     }
 
+    private var _binding: FragmentFavouriteBinding? = null
+    private val binding get() = _binding!!
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        rootView = inflater.inflate(R.layout.fragment_favourite, container, false)
+        _binding = FragmentFavouriteBinding.inflate(inflater, container, false)
+        return binding.root
+    }
 
-        return rootView
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
 
@@ -63,12 +63,6 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     private fun setTransitions(view: View) {
         postponeEnterTransition()
         view.doOnPreDraw { startPostponedEnterTransition() }
-//        exitTransition = MaterialFadeThrough().apply {
-//            duration = 300
-//        }
-//        reenterTransition = MaterialFadeThrough().apply {
-//            duration = 300
-//        }
         sharedElementEnterTransition = MaterialContainerTransform().apply {
             drawingViewId = R.id.navHostFragmentContainer
             duration = 300
@@ -81,34 +75,34 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         }
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
+    /*override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
             favouriteController.spanCount = 5
-            (rootView.searchRecyclerView.layoutManager as GridLayoutManager).spanCount = 5
+            (binding.searchRecyclerView.layoutManager as GridLayoutManager).spanCount = 5
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
             favouriteController.spanCount = 3
-            (rootView.searchRecyclerView.layoutManager as GridLayoutManager).spanCount = 3
+            (binding.searchRecyclerView.layoutManager as GridLayoutManager).spanCount = 3
         }
 
-    }
+    }*/
 
     private fun setObserver() {
-        viewModel.favouriteList.observe(viewLifecycleOwner, {
+        viewModel.favouriteList.observe(viewLifecycleOwner) {
             favouriteController.setData(it)
-        })
+        }
     }
 
 
     private fun setAdapters() {
         favouriteController.spanCount = Utils.calculateNoOfColumns(requireContext(), 150f)
-        rootView.recyclerView.apply {
+        binding.recyclerView.apply {
             layoutManager =
                 GridLayoutManager(context, Utils.calculateNoOfColumns(requireContext(), 150f))
             adapter = favouriteController.adapter
             (layoutManager as GridLayoutManager).spanSizeLookup = favouriteController.spanSizeLookup
         }
-        rootView.recyclerView.addItemDecoration(
+        binding.recyclerView.addItemDecoration(
             ItemOffsetDecoration(
                 context,
                 R.dimen.episode_offset_left
@@ -127,7 +121,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     }
 
     private fun transitionListener() {
-        rootView.motionLayout.setTransitionListener(
+        binding.motionLayout.setTransitionListener(
             object : MotionLayout.TransitionListener {
                 override fun onTransitionTrigger(
                     p0: MotionLayout?,
@@ -139,7 +133,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
                 }
 
                 override fun onTransitionStarted(p0: MotionLayout?, p1: Int, p2: Int) {
-                    rootView.topView.cardElevation = 0F
+                    binding.topView.cardElevation = 0F
                 }
 
                 override fun onTransitionChange(
@@ -149,11 +143,11 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
                     progress: Float
                 ) {
                     if (startId == R.id.start) {
-                        rootView.topView.cardElevation = 20F * progress
-                        rootView.toolbarText.alpha = progress
+                        binding.topView.cardElevation = 20F * progress
+                        binding.toolbarText.alpha = progress
                     } else {
-                        rootView.topView.cardElevation = 10F * (1 - progress)
-                        rootView.toolbarText.alpha = (1 - progress)
+                        binding.topView.cardElevation = 10F * (1 - progress)
+                        binding.toolbarText.alpha = (1 - progress)
                     }
                 }
 
@@ -165,11 +159,11 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
     }
 
     private fun setClickListeners() {
-        rootView.back.setOnClickListener(this)
+        binding.back.setOnClickListener(this)
     }
 
 
-    override fun animeTitleClick(model: FavouriteModel, sharedTitle: View, sharedImage: View) {
+    override fun animeTitleClick(model: AnimeDisplayModel, sharedTitle: View, sharedImage: View) {
         val extras = FragmentNavigatorExtras(
             sharedTitle to resources.getString(R.string.shared_anime_title),
             sharedImage to resources.getString(R.string.shared_anime_image)
@@ -177,7 +171,7 @@ class FavouriteFragment : Fragment(), FavouriteController.EpoxySearchAdapterCall
         findNavController().navigate(
             FavouriteFragmentDirections.actionFavouriteFragmentToAnimeInfoFragment(
                 categoryUrl = model.categoryUrl!!,
-                animeName = model.animeName!!,
+                animeName = model.title!!,
                 animeImageUrl = model.imageUrl!!
             ), extras
         )

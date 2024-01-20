@@ -1,13 +1,7 @@
 package net.xblacky.animexstream.utils.touchevents
 
-import android.content.Context
-import android.graphics.Point
-import android.os.Build
-import android.util.DisplayMetrics
 import android.view.MotionEvent
-import android.view.WindowManager
-import com.google.android.exoplayer2.Player
-import com.google.android.exoplayer2.ui.PlayerView
+import androidx.media3.ui.PlayerView
 import timber.log.Timber
 import kotlin.math.abs
 
@@ -27,6 +21,7 @@ object TouchUtils {
                 startX = event.x
                 startY = event.y
             }
+
             MotionEvent.ACTION_UP -> {
                 val endX = event.x
                 val endY = event.y
@@ -44,6 +39,3 @@ object TouchUtils {
         return if (scaleBy > 1) scaleBy else 1f
     }
 }
-
-
-

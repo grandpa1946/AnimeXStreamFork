@@ -1,19 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.constraintlayout.widget.ConstraintLayout
-    android:transitionName="@string/episode_transition"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/playerActivityContainer"
-    android:background="@android:color/black"
-    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:transitionName="@string/episode_transition">
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/playerFragment"
-        android:name="net.xblacky.animexstream.ui.main.player.VideoPlayerFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
-
-    </fragment>
+        android:orientation="vertical" />
 </androidx.constraintlayout.widget.ConstraintLayout>
